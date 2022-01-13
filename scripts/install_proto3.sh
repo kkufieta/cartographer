@@ -23,8 +23,8 @@ VERSION="v3.4.1"
 git clone https://github.com/google/protobuf.git
 pushd protobuf
 git checkout tags/${VERSION}
-mkdir build
-pushd build
+mkdir build_cmake
+pushd build_cmake
 cmake -G Ninja \
   -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
   -DCMAKE_BUILD_TYPE=Release \
