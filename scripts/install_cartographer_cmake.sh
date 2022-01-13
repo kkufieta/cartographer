@@ -18,10 +18,13 @@ set -o errexit
 set -o verbose
 
 # Build and install Cartographer.
-cd cartographer
+pushd cartographer
 mkdir build
-cd build
+pushd build
 cmake .. -G Ninja
 ninja
+# Test??
 CTEST_OUTPUT_ON_FAILURE=1 ninja test
 sudo ninja install
+popd
+popd
