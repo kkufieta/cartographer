@@ -25,10 +25,8 @@ pushd ceres-solver
 git checkout tags/${VERSION}
 mkdir build
 pushd build
-cmake .. -G Ninja -DCXX11=ON
+cmake .. -G Ninja -DCXX11=ON -DBUILD_TESTING=OFF
 ninja
-# TODO: avoid running tests?
-CTEST_OUTPUT_ON_FAILURE=1 ninja test
 sudo ninja install
 popd
 popd
