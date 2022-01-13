@@ -23,8 +23,11 @@ VERSION="1.13.0"
 git clone https://ceres-solver.googlesource.com/ceres-solver
 pushd ceres-solver
 git checkout tags/${VERSION}
+
+rm -rf build
 mkdir build
 pushd build
+
 cmake .. -G Ninja -DCXX11=ON -DBUILD_TESTING=OFF
 ninja
 sudo ninja install

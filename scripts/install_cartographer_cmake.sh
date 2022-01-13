@@ -19,8 +19,11 @@ set -o verbose
 
 # Build and install Cartographer.
 pushd cartographer
+
+rm -rf build
 mkdir build
 pushd build
+
 cmake .. -G Ninja
 ninja
 sudo ninja install

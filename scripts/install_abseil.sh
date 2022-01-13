@@ -20,8 +20,11 @@ set -o verbose
 git clone https://github.com/abseil/abseil-cpp.git
 pushd abseil-cpp
 git checkout d902eb869bcfacc1bad14933ed9af4bed006d481
+
+rm -rf build
 mkdir build
 pushd build
+
 cmake -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
