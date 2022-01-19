@@ -185,10 +185,12 @@ endif()
 set(INSTALL_GENERATED_HDRS ${ALL_PROTO_HDRS} ${ALL_GRPC_SERVICE_HDRS})
 
 add_library(${PROJECT_NAME} STATIC ${ALL_LIBRARY_HDRS} ${ALL_LIBRARY_SRCS})
+target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC "/usr/local/include")
 
 configure_file(
   ${PROJECT_SOURCE_DIR}/cartographer/common/config.h.cmake
   ${PROJECT_BINARY_DIR}/cartographer/common/config.h)
+
 
 google_binary(cartographer_autogenerate_ground_truth
   SRCS
@@ -208,6 +210,11 @@ google_binary(cartographer_pbstream
 google_binary(cartographer_print_configuration
   SRCS
   cartographer/common/print_configuration_main.cc
+)
+
+google_binary(kat_main
+  SRCS
+  cartographer/mapping/kat_main.cc
 )
 
 if(${BUILD_GRPC})
