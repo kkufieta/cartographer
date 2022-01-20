@@ -44,7 +44,7 @@ if(WIN32)
   set(protobuf_MODULE_COMPATIBLE TRUE CACHE INTERNAL "")
   find_package(Protobuf 3.0.0 CONFIG)
 else()
-  find_package(Protobuf 3.0.0 REQUIRED)
+  find_package(Protobuf 3.4.0 REQUIRED)
 endif()
 
 if (${BUILD_GRPC})

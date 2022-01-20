@@ -104,6 +104,9 @@ void Run(const std::string& configuration_directory,
       kTravelDistance, kDuration, kTimeStep);
 
   for (const auto& measurement : measurements) {
+    // TODO: Grab our pointcloud 
+    // e.g.: measurement = Rplidar.NextPointCloud()
+    // TODO: Transform our pointcloud to theirs 
     trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);
   }
   map_builder_->FinishTrajectory(trajectory_id);
