@@ -14,6 +14,7 @@
 
 cmake_minimum_required(VERSION 3.2)
 
+
 project(cartographer)
 
 set(CARTOGRAPHER_MAJOR_VERSION 1)
