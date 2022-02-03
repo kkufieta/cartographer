@@ -31,9 +31,11 @@ sensor::TimedPointCloudOriginData RangeDataCollator::AddRangeData(
     const std::string& sensor_id,
     sensor::TimedPointCloudData timed_point_cloud_data) {
   CHECK_NE(expected_sensor_ids_.count(sensor_id), 0);
+  //std::cout << "HEREEEEE1: " << timed_point_cloud_data.ranges.size() << "\n";
   timed_point_cloud_data.intensities.resize(
-      timed_point_cloud_data.ranges.size(), kDefaultIntensityValue);
+  timed_point_cloud_data.ranges.size(), kDefaultIntensityValue);
   // TODO(gaschler): These two cases can probably be one.
+  //std::cout << "HEREEEEE2: " << timed_point_cloud_data.ranges.size() << "\n";
   if (id_to_pending_data_.count(sensor_id) != 0) {
     current_start_ = current_end_;
     // When we have two messages of the same sensor, move forward the older of
@@ -41,10 +43,13 @@ sensor::TimedPointCloudOriginData RangeDataCollator::AddRangeData(
     current_end_ = id_to_pending_data_.at(sensor_id).time;
     auto result = CropAndMerge();
     id_to_pending_data_.emplace(sensor_id, std::move(timed_point_cloud_data));
+    //std::cout << "HEREEEEE3: " << result.ranges.size() << "\n";
     return result;
   }
   id_to_pending_data_.emplace(sensor_id, std::move(timed_point_cloud_data));
   if (expected_sensor_ids_.size() != id_to_pending_data_.size()) {
+
+    //std::cout << "HERE\n";
     return {};
   }
   current_start_ = current_end_;
@@ -54,38 +59,49 @@ sensor::TimedPointCloudOriginData RangeDataCollator::AddRangeData(
     oldest_timestamp = std::min(oldest_timestamp, pair.second.time);
   }
   current_end_ = oldest_timestamp;
+  //std::cout << "HERERRR\n";
   return CropAndMerge();
 }
 
 sensor::TimedPointCloudOriginData RangeDataCollator::CropAndMerge() {
   sensor::TimedPointCloudOriginData result{current_end_, {}, {}};
   bool warned_for_dropped_points = false;
+  //std::cout << "Size of it: " << id_to_pending_data_.size() << "\n";
   for (auto it = id_to_pending_data_.begin();
        it != id_to_pending_data_.end();) {
     sensor::TimedPointCloudData& data = it->second;
     const sensor::TimedPointCloud& ranges = it->second.ranges;
     const std::vector<float>& intensities = it->second.intensities;
 
+    //std::cout << "Size of ranges: " << ranges.size() << "\n";
+
+
     auto overlap_begin = ranges.begin();
-    while (overlap_begin < ranges.end() &&
-           data.time + common::FromSeconds((*overlap_begin).time) <
-               current_start_) {
-      ++overlap_begin;
-    }
-    auto overlap_end = overlap_begin;
-    while (overlap_end < ranges.end() &&
-           data.time + common::FromSeconds((*overlap_end).time) <=
-               current_end_) {
-      ++overlap_end;
-    }
+    //std::cout << "ranges.begin: "<< ranges[0].time << "ranges.end: "<<  ranges[1000].time << "\n";
+    //std::cout << "data.time: " << data.time << "common::FromSeconds((*overlap_begin).time): " << (*overlap_begin).time << "current_start_: " << current_start_ << "\n" <<"current_end_: " << current_end_ << "\n";
+    //std::cout << "data.time: " << data.time << "common::FromSeconds((*overlap_begin).time): " << (*overlap_begin).time << "current_start_: " << current_start_ << "\n";
+    
+    // while (overlap_begin < ranges.end() && data.time + common::FromSeconds((*overlap_begin).time) < current_start_) {
+    //   std::cout << "GREATER THAN \n";
+    //   ++overlap_begin;
+    // }
+    auto overlap_end = ranges.end();
+    // while (overlap_end < ranges.end() && data.time + common::FromSeconds((*overlap_end).time) <= current_end_) {
+    //   std::cout << "GREATER THAN OR EQUALLLLLLL " << (*overlap_end).time << " | " << data.time + common::FromSeconds((*overlap_begin).time) << "\n";
+    //   ++overlap_end;
+    // }
     if (ranges.begin() < overlap_begin && !warned_for_dropped_points) {
       LOG(WARNING) << "Dropped " << std::distance(ranges.begin(), overlap_begin)
                    << " earlier points.";
       warned_for_dropped_points = true;
     }
+    //std::cout << "overlap_begin: " << (*overlap_begin).time << "overlap_ends: " << (*overlap_end).time << "\n";
+
+    //std::cout << "result.ranges0: " << result.ranges.size() << "\n";
 
     // Copy overlapping range.
     if (overlap_begin < overlap_end) {
+      //std::cout << "ooooooo\n";
       std::size_t origin_index = result.origins.size();
       result.origins.push_back(data.origin);
       const float time_correction =
@@ -105,6 +121,8 @@ sensor::TimedPointCloudOriginData RangeDataCollator::CropAndMerge() {
       }
     }
 
+    //std::cout << "result.ranges1: " << result.ranges.size() << "\n";
+
     // Drop buffered points until overlap_end.
     if (overlap_end == ranges.end()) {
       it = id_to_pending_data_.erase(it);
@@ -120,6 +138,8 @@ sensor::TimedPointCloudOriginData RangeDataCollator::CropAndMerge() {
       ++it;
     }
   }
+
+  //std::cout << "result.ranges2: " << result.ranges.size() << "\n";
 
   std::sort(result.ranges.begin(), result.ranges.end(),
             [](const sensor::TimedPointCloudOriginData::RangeMeasurement& a,

@@ -12,14 +12,10 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-include "pose_graph.lua"
-
-MAP_BUILDER = {
-  use_trajectory_builder_2d = true,
-  use_trajectory_builder_3d = false,
-  num_background_threads = 4,
-  pose_graph = POSE_GRAPH,
-  collate_by_trajectory = false,
-}
-
-return MAP_BUILDER
+include "trajectory_builder.lua"
+TRAJECTORY_BUILDER.trajectory_builder_2d.use_imu_data = false
+TRAJECTORY_BUILDER.trajectory_builder_2d.submaps.num_range_data = 4
+TRAJECTORY_BUILDER.trajectory_builder_3d.submaps.num_range_data = 4
+TRAJECTORY_BUILDER.collate_fixed_frame = true
+TRAJECTORY_BUILDER.collate_landmarks = false
+return TRAJECTORY_BUILDER

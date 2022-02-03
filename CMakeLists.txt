@@ -39,6 +39,17 @@ find_package(Boost REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 find_package(Ceres REQUIRED COMPONENTS SuiteSparse)
 find_package(Eigen3 REQUIRED)
 find_package(LuaGoogle REQUIRED)
+
+# ****
+find_package( PCL REQUIRED )
+find_package(libLAS REQUIRED)
+
+include_directories(  ${PCL_INCLUDE_DIRS} )
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+# ****
+
+
 if(WIN32)
   # On Windows, Protobuf is incorrectly found by the bundled CMake module, so prefer native CMake config.
   set(protobuf_MODULE_COMPATIBLE TRUE CACHE INTERNAL "")
@@ -190,6 +201,11 @@ configure_file(
   ${PROJECT_SOURCE_DIR}/cartographer/common/config.h.cmake
   ${PROJECT_BINARY_DIR}/cartographer/common/config.h)
 
+google_binary(viam_carto_main
+  SRCS
+    cartographer/mapping/viam_carto_main.cc
+)
+
 google_binary(cartographer_autogenerate_ground_truth
   SRCS
     cartographer/ground_truth/autogenerate_ground_truth_main.cc
@@ -263,6 +279,11 @@ if("${CAIRO_INCLUDE_DIRS}")
     "${CAIRO_INCLUDE_DIRS}")
 endif()
 target_link_libraries(${PROJECT_NAME} PUBLIC ${CAIRO_LIBRARIES})
+
+# *******
+target_link_libraries(${PROJECT_NAME} PUBLIC ${PCL_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${libLAS_LIBRARIES})
+# *******
 
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
   ${PROTOBUF_INCLUDE_DIR})
