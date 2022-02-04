@@ -5,7 +5,7 @@
 #include <fstream>  // std::ifstream
 #include <string>
 #include <boost/filesystem.hpp>
-#include "read_from_file.h"
+#include "viam_read_PCD_file.h"
 #include <stdio.h>
 #include <ctime>
 

@@ -1,4 +1,4 @@
-#include "cartographer/mapping/map_builder_custom.h"
+#include "cartographer/mapping/viam_map_builder.h"
 #include "cartographer/mapping/map_builder.h"
 #include "cartographer/metrics/register.h"
 #include <string>
