@@ -39,6 +39,16 @@ find_package(Boost REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 find_package(Ceres REQUIRED COMPONENTS SuiteSparse)
 find_package(Eigen3 REQUIRED)
 find_package(Lua 5.2 REQUIRED)
+
+# ****
+find_package( PCL REQUIRED )
+
+include_directories(  ${PCL_INCLUDE_DIRS} )
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+# ****
+
+
 if(WIN32)
   # On Windows, Protobuf is incorrectly found by the bundled CMake module, so prefer native CMake config.
   set(protobuf_MODULE_COMPATIBLE TRUE CACHE INTERNAL "")
@@ -270,6 +280,10 @@ if("${CAIRO_INCLUDE_DIRS}")
     "${CAIRO_INCLUDE_DIRS}")
 endif()
 target_link_libraries(${PROJECT_NAME} PUBLIC ${CAIRO_LIBRARIES})
+
+# *******
+target_link_libraries(${PROJECT_NAME} PUBLIC ${PCL_LIBRARIES})
+# *******
 
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
   ${PROTOBUF_INCLUDE_DIR})
