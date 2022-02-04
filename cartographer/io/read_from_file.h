@@ -14,8 +14,7 @@ namespace io {
 
 class ReadFile {
  public:
- std::vector<std::string> listFilesInDirectory();
-  sensor::TimedPointCloud timedPointCloudFromLASBuilder(std::string file_path);
+ std::vector<std::string> listFilesInDirectory(std::string data_directory);
   sensor::TimedPointCloudData timedPointCloudDataFromPCDBuilder(std::string file_path, std::string initial_filename);
   int removeFile(std::string);
 

@@ -39,6 +39,32 @@ Getting started
 .. _our Read the Docs site: https://google-cartographer.readthedocs.io
 .. _creating an issue: https://github.com/cartographer-project/cartographer_ros/issues/new?labels=question
 
+---------------------------------------------------------------------------
+* Viam Specific Instructions
+
+# Raspberry Pi (Or other Debian 11+, including canon-shell)
+sudo apt install cmake \
+ninja-build \
+libgmock-dev \
+libboost-iostreams-dev \
+liblua5.3-dev \
+libcairo2-dev \
+python3-sphinx \
+libabsl-dev \
+libceres-dev \
+libprotobuf-dev \
+protobuf-compiler \
+libpcl-dev
+
+# Cartographer
+git clone git@github.com:cartographer-project/cartographer.git (change to slam viamrobotics?)
+mkdir cartographer/build && cd cartographer/build
+cmake .. -G Ninja -DCMAKE_CXX_STANDARD=17
+ninja
+
+---------------------------------------------------------------------------
+
+
 Contributing
 ============
 
@@ -99,3 +125,6 @@ Slides of these Cartographer Open House meetings are listed below.
     :alt: Cartographer 3D SLAM Demo
     :scale: 100%
     :target: https://youtu.be/DM0dpHLhtX0
+
+
+

@@ -12,7 +12,8 @@ const SensorId kRangeSensorId{SensorId::SensorType::RANGE, "range"};
 const SensorId kIMUSensorId{SensorId::SensorType::IMU, "imu"};
 
 
-void Run(std::string mode, const std::string& configuration_directory,
+
+void Run(std::string mode, std::string data_directory, const std::string& configuration_directory,
          const std::string& configuration_basename) {
 
   MapBuilderViam mapBuilderViam;
@@ -39,14 +40,14 @@ void Run(std::string mode, const std::string& configuration_directory,
   float i = 0;
 
   cartographer::io::ReadFile read_file;
-  std::vector<std::string> file_list = read_file.listFilesInDirectory();
+  std::vector<std::string> file_list = read_file.listFilesInDirectory(data_directory);
   std::string initial_file = file_list[0];
 
   //std::cout << "Beginning to add data....\n";
   //while (true) {
   for (size_t i = 0; i < file_list.size(); i++ ) { // file_list.size()
     //std::cout << "Data [" << i << "]....\n";
-    auto measurement = mapBuilderViam.GenerateSavedRangeMeasurements(0.0, float(i), 1.0, initial_file, i);// kTravelDistance, kDuration, kTimeStep); // change!
+    auto measurement = mapBuilderViam.GenerateSavedRangeMeasurements(0.0, float(i), 1.0, initial_file, i, data_directory);// kTravelDistance, kDuration, kTimeStep); // change!
 
     if (measurement.ranges.size() > 0) {
         trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);
@@ -82,7 +83,16 @@ int main(int argc, char** argv) {
 
   std::string mode = "Global2D";
 
-  cartographer::mapping::Run(mode, FLAGS_configuration_directory, FLAGS_configuration_basename);
+  std::string data_directory;
+  if (argc >= 2) {
+    data_directory = argv[1];
+  }
+  else {
+    data_directory = "/home/jeremyhyde-viam/data";
+    std::cout << "No data directory specified, using default: " << data_directory << std::endl;
+  }
+
+  cartographer::mapping::Run(mode, data_directory, FLAGS_configuration_directory, FLAGS_configuration_basename);
 
   return 1;
 }

@@ -111,14 +111,14 @@ MapBuilderInterface::LocalSlamResultCallback MapBuilderViam::GetLocalSlamResultC
     };
   }
 
-cartographer::sensor::TimedPointCloudData MapBuilderViam::GenerateSavedRangeMeasurements(double travel_distance, double duration, double time_step, std::string initial_filename, int i) {
+cartographer::sensor::TimedPointCloudData MapBuilderViam::GenerateSavedRangeMeasurements(double travel_distance, double duration, double time_step, std::string initial_filename, int i, std::string data_directory) {
     const Eigen::Vector3f kDirection = Eigen::Vector3f(2., 1., 0.).normalized();
-    return GenerateSaved2DRangeMeasurements(kDirection * travel_distance, duration, time_step, transform::Rigid3f::Identity(), initial_filename, i);
+    return GenerateSaved2DRangeMeasurements(kDirection * travel_distance, duration, time_step, transform::Rigid3f::Identity(), initial_filename, i, data_directory);
   }
 
-cartographer::sensor::TimedPointCloudData MapBuilderViam::GenerateSaved2DRangeMeasurements(const Eigen::Vector3f& translation, double duration, double time_step, const transform::Rigid3f& local_to_global, std::string initial_filename, int i) {
+cartographer::sensor::TimedPointCloudData MapBuilderViam::GenerateSaved2DRangeMeasurements(const Eigen::Vector3f& translation, double duration, double time_step, const transform::Rigid3f& local_to_global, std::string initial_filename, int i, std::string data_directory) {
 
-    cartographer::sensor::TimedPointCloudData point_cloud_data = MapBuilderViam::GetDataFromFile(initial_filename, i);
+    cartographer::sensor::TimedPointCloudData point_cloud_data = MapBuilderViam::GetDataFromFile(initial_filename, i, data_directory);
 
     std::cout << "----------PCD-------\n";
     std::cout << "Time: " << point_cloud_data.time << std::endl;  
@@ -130,12 +130,12 @@ cartographer::sensor::TimedPointCloudData MapBuilderViam::GenerateSaved2DRangeMe
     return point_cloud_data;
   }
 
-cartographer::sensor::TimedPointCloudData MapBuilderViam::GetDataFromFile(std::string initial_filename, int i) {
+cartographer::sensor::TimedPointCloudData MapBuilderViam::GetDataFromFile(std::string initial_filename, int i, std::string data_directory) {
     cartographer::io::ReadFile read_file;
     std::vector<std::string> files;
     cartographer::sensor::TimedPointCloudData point_cloud;
 
-    files = read_file.listFilesInDirectory();
+    files = read_file.listFilesInDirectory(data_directory);
 
     if ( files.size() == 0 ) {
       std::cout << "No files found in data directory\n"; 
