@@ -1,7 +1,6 @@
 #include <iostream>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
-#include <liblas/liblas.hpp>
 #include <fstream>  // std::ifstream
 #include <string>
 #include <boost/filesystem.hpp>
