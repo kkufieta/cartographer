@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Copyright 2018 The Cartographer Authors
 #
@@ -18,12 +18,14 @@ set -o errexit
 set -o verbose
 
 git clone https://github.com/cartographer-project/async_grpc
-cd async_grpc
+pushd async_grpc
 git checkout 771af45374af7f7bfc3b622ed7efbe29a4aba403
 mkdir build
-cd build
+pushd build
 cmake -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   ..
 ninja
 sudo ninja install
+popd
+popd

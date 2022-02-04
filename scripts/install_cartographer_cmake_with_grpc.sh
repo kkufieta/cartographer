@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Copyright 2017 The Cartographer Authors
 #
@@ -18,10 +18,16 @@ set -o errexit
 set -o verbose
 
 # Build and install Cartographer.
-cd cartographer
+pushd cartographer
+
+rm -rf build
 mkdir build
-cd build
+pushd build
+
+cmake .. -G Ninja
 cmake .. -DBUILD_GRPC=ON -DBUILD_PROMETHEUS=ON -G Ninja
 ninja
 CTEST_OUTPUT_ON_FAILURE=1 ninja test
 sudo ninja install
+popd
+popd

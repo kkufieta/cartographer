@@ -20,9 +20,9 @@ set -o verbose
 # Build and install Cartographer.
 pushd cartographer
 
-rm -rf build
-mkdir build
-pushd build
+rm -rf build-wo-grpc
+mkdir build-wo-grpc
+pushd build-wo-grpc
 
 cmake .. -G Ninja
 ninja

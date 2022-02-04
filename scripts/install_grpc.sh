@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Copyright 2017 The Cartographer Authors
 #
@@ -22,7 +22,13 @@ VERSION="v1.10.0"
 
 # Build and install gRPC.
 git clone --branch ${VERSION} --depth 1 https://github.com/grpc/grpc
-cd grpc
+pushd grpc
 git submodule update --init
-make
+mkdir -p cmake/build
+pushd cmake/build
+cmake -DgRPC_INSTALL=ON \
+    -DgRPC_BUILD_TESTS=OFF \
+    ../..
+make -j3
 sudo make install
+popd
