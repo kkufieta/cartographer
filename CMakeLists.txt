@@ -42,7 +42,6 @@ find_package(LuaGoogle REQUIRED)
 
 # ****
 find_package( PCL REQUIRED )
-find_package(libLAS REQUIRED)
 
 include_directories(  ${PCL_INCLUDE_DIRS} )
 link_directories(${PCL_LIBRARY_DIRS})
@@ -282,7 +281,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC ${CAIRO_LIBRARIES})
 
 # *******
 target_link_libraries(${PROJECT_NAME} PUBLIC ${PCL_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} PUBLIC ${libLAS_LIBRARIES})
 # *******
 
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC

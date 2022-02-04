@@ -43,11 +43,10 @@ void Run(std::string mode, std::string data_directory, const std::string& config
   std::vector<std::string> file_list = read_file.listFilesInDirectory(data_directory);
   std::string initial_file = file_list[0];
 
-  //std::cout << "Beginning to add data....\n";
-  //while (true) {
-  for (size_t i = 0; i < file_list.size(); i++ ) { // file_list.size()
-    //std::cout << "Data [" << i << "]....\n";
-    auto measurement = mapBuilderViam.GenerateSavedRangeMeasurements(0.0, float(i), 1.0, initial_file, i, data_directory);// kTravelDistance, kDuration, kTimeStep); // change!
+  std::cout << "Beginning to add data....\n";
+  
+  for (int i = 0; i < int(file_list.size()); i++ ) { // file_list.size()
+    auto measurement = mapBuilderViam.GenerateSavedRangeMeasurements(data_directory, initial_file, i);
 
     if (measurement.ranges.size() > 0) {
         trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);
@@ -67,6 +66,7 @@ void Run(std::string mode, std::string data_directory, const std::string& config
       std::cout << "Time: " << i << "\t | Final Pose: " << final_pose << std::endl;
   }
 
+  std::cout << "Size of localSLAMREsultPose = " << mapBuilderViam.local_slam_result_poses_.size() << std::endl;
   // TODO: add map extractor
   //PcdWritingPointsProcessor pointProcessor;
   //pointProcessor.Process();

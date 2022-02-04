@@ -40,10 +40,10 @@ class MapBuilderViam {
 
   MapBuilderInterface::LocalSlamResultCallback GetLocalSlamResultCallback();
 
-  cartographer::sensor::TimedPointCloudData GenerateSavedRangeMeasurements(double travel_distance, double duration, double time_step, std::string initial_filename, int i, std::string data_directory);
-  cartographer::sensor::TimedPointCloudData GenerateSaved2DRangeMeasurements(const Eigen::Vector3f& translation, double duration, double time_step, const transform::Rigid3f& local_to_global, std::string initial_filename, int i, std::string data_directory);
+  cartographer::sensor::TimedPointCloudData GenerateSavedRangeMeasurements(std::string data_directory, std::string initial_filename, int i);
+  cartographer::sensor::TimedPointCloudData GenerateSaved2DRangeMeasurements(std::string initial_filename, int i, std::string data_directory);
   
-  cartographer::sensor::TimedPointCloudData GetDataFromFile(std::string initial_filename, int i, std::string data_directory);
+  cartographer::sensor::TimedPointCloudData GetDataFromFile(std::string data_directory, std::string initial_filename, int i);
 
 
   std::unique_ptr<MapBuilderInterface> map_builder_;
