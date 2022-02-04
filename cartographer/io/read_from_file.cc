@@ -15,50 +15,6 @@ namespace io {
 
 namespace fs = boost::filesystem;
 
-sensor::TimedPointCloud ReadFile::timedPointCloudFromLASBuilder (std::string file_path){
-
-  sensor::TimedPointCloudData timedPCD;
-  sensor::TimedPointCloud ranges;
-
-  std::ifstream ifs;
-  ifs.open(file_path, std::ios::in |     std::ios::binary);
-
-  std::cout << "Accessing file " << file_path << " ... \n"; 
-  return ranges;
-  liblas::ReaderFactory f; 
-  liblas::Reader reader = f.CreateWithStream(ifs);
-
-  std::vector<float> intensities;
-
-  Eigen::Vector3f origin(0.0, 0.0, 0.0);
-
-  std::cout << "Reading point data... \n";
-
-  float t = 0;
-  while (reader.ReadNextPoint()){
-    liblas::Point const& p = reader.GetPoint();
-
-    sensor::TimedRangefinderPoint TimedRP;
-    TimedRP.position = Eigen::Vector3f(p.GetX(),p.GetY(),p.GetZ());
-    TimedRP.time = t;
-    
-    ranges.push_back(TimedRP);
-    intensities.push_back(p.GetIntensity());
-
-    t += 0.1;
-  }
-
-  timedPCD.origin = origin;
-  timedPCD.ranges = ranges;
-  timedPCD.intensities = intensities;
-
-  std::cout << "TimedPointCloudData# packet created! \n";
-  std::cout << timedPCD.ranges.size() << " points registered \n";
-  
-  return ranges;
-  //return timedPCD;
-}
-
 sensor::TimedPointCloudData ReadFile::timedPointCloudDataFromPCDBuilder (std::string file_path, std::string initial_filename){
 
   sensor::TimedPointCloudData timedPCD;
@@ -91,7 +47,6 @@ sensor::TimedPointCloudData ReadFile::timedPointCloudDataFromPCDBuilder (std::st
   std::cout << "Size " << cloud->points.size() << "\n";
   std::cout << "TD " << time_delta << "\n";
 
-  int j = 0;
   for (size_t i = 0; i < cloud->points.size(); ++i) {
 
     sensor::TimedRangefinderPoint TimedRP;
@@ -108,12 +63,11 @@ sensor::TimedPointCloudData ReadFile::timedPointCloudDataFromPCDBuilder (std::st
   return timedPCD;
 }
 
-std::vector<std::string> ReadFile::listFilesInDirectory()
+std::vector<std::string> ReadFile::listFilesInDirectory(std::string data_directory)
 {
-    std::string path = "/home/jeremyhyde-viam/data";
     std::vector<std::string> file_paths;
 
-    for (const auto & entry : fs::directory_iterator(path)) {
+    for (const auto & entry : fs::directory_iterator(data_directory)) {
         file_paths.push_back((entry.path()).string());
     }
 
