@@ -222,6 +222,12 @@ google_binary(cartographer_print_configuration
   cartographer/common/print_configuration_main.cc
 )
 
+google_binary(viam_carto_main
+  SRCS
+    cartographer/mapping/viam_carto_main.cc
+)
+
+
 google_binary(kat_main
   SRCS
   cartographer/mapping/kat_main.cc

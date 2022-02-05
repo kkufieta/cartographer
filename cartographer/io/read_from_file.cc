@@ -32,12 +32,21 @@ sensor::TimedPointCloudData ReadFile::timedPointCloudDataFromPCDBuilder (std::st
     return timedPCD;
   }
 
-  std::string initial_file = initial_filename.substr(initial_filename.find("data_") + 5, 18);
-  std::string next_file = file_path.substr(file_path.find("data_") + 5, 18);
+  // KAT NOTE: The file name format for the pcd files is assumed to be, e.g.:
+  // rplidar_data_2022-02-05T01_00_20.9874.pcd
+
+  // TODO: The above format will likely have changed after I fix the time format in the 
+  // currently still open PR. Please fix the above comment and implementation below, if you
+  // find that the format doesn't match 100%.
+
+  std::string initial_file = initial_filename.substr(initial_filename.find("rplidar_data_") + 13, 20);
+  std::string next_file = file_path.substr(file_path.find("rplidar_data_") + 13, 20);
 
   struct tm initial_time,final_time;
-  strptime(initial_file.c_str(), "%Y%m%dT%H_%M_%SZ", &initial_time);
-  strptime(next_file.c_str(), "%Y%m%dT%H_%M_%SZ", &final_time);
+
+  // NOTE TODO(jeremy): Rewrite this to enable us process time with sub-second accuracy.
+  strptime(initial_file.c_str(), "%Y-%m-%dT%H_%M_%S.", &initial_time);
+  strptime(next_file.c_str(), "%Y-%m-%dT%H_%M_%S.%", &final_time);
   initial_time.tm_isdst = -1;
   final_time.tm_isdst = -1;
   float time_delta = std::difftime(std::mktime(&final_time), std::mktime(&initial_time));
