@@ -205,6 +205,11 @@ google_binary(viam_carto_main
     cartographer/mapping/viam_carto_main.cc
 )
 
+google_binary(viam_carto_loop_main
+  SRCS
+    cartographer/mapping/viam_carto_loop_main.cc
+)
+
 google_binary(cartographer_autogenerate_ground_truth
   SRCS
     cartographer/ground_truth/autogenerate_ground_truth_main.cc

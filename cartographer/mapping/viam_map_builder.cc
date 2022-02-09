@@ -124,7 +124,7 @@ cartographer::sensor::TimedPointCloudData MapBuilderViam::GenerateSaved2DRangeMe
     std::cout << "----------PCD-------\n";
     std::cout << "Time: " << point_cloud_data.time << std::endl;  
     std::cout << "Range (size): " << point_cloud_data.ranges.size() << std::endl;
-    std::cout << "Range start (time)): " << point_cloud_data.ranges[0].time << std::endl;
+    std::cout << "Range start (time): " << point_cloud_data.ranges[0].time << std::endl;
     std::cout << "Range end (time): " << (point_cloud_data.ranges.back()).time << std::endl;
     std::cout << "-----------------\n";
 

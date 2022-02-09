@@ -12,6 +12,25 @@ const SensorId kRangeSensorId{SensorId::SensorType::RANGE, "range"};
 const SensorId kIMUSensorId{SensorId::SensorType::IMU, "imu"};
 
 
+void PrintState(MapBuilderViam* mapBuilderViam, int trajectory_id, std::vector<transform::Rigid3d> final_poses_non_optimized) {
+  const auto trajectory_nodes = mapBuilderViam->map_builder_->pose_graph()->GetTrajectoryNodes();
+  const auto submap_data = mapBuilderViam->map_builder_->pose_graph()->GetAllSubmapData();
+
+  const transform::Rigid3d final_pose = mapBuilderViam->map_builder_->pose_graph()->GetLocalToGlobalTransform(trajectory_id) * mapBuilderViam->local_slam_result_poses_.back();
+
+  std::cout << "----(non-opt)---- FINAL POSES ------(opt)------\n";
+  for (int i = 0; i < int(final_poses_non_optimized.size()); i++ ) { // file_list.size()
+    std::cout << "Pose: "  << final_poses_non_optimized[i] << "std::endl";
+    //std::cout << "Pose: " << final_poses_non_optimized[i] << "\t | \t" << final_poses_optimized[i] << "std::endl";
+
+  }
+  std::cout << "-----------------------------------------------\n";
+  std::cout << "Final Pose: " << final_pose << std::endl;
+  std::cout << "-----------------------------------------------\n";
+  std::cout << "Size of localSLAMResultPose = " << mapBuilderViam->local_slam_result_poses_.size() << std::endl;
+
+  return;
+}
 
 void Run(std::string mode, std::string data_directory, const std::string& configuration_directory,
          const std::string& configuration_basename) {
@@ -37,11 +56,12 @@ void Run(std::string mode, std::string data_directory, const std::string& config
 
   TrajectoryBuilderInterface* trajectory_builder = mapBuilderViam.map_builder_->GetTrajectoryBuilder(trajectory_id);
 
-  float i = 0;
-
   cartographer::io::ReadFile read_file;
   std::vector<std::string> file_list = read_file.listFilesInDirectory(data_directory);
   std::string initial_file = file_list[0];
+
+  //std::vector<transform::Rigid3d> final_poses_non_optimized;
+  std::vector<transform::Rigid3d> final_poses_non_optimized;
 
   std::cout << "Beginning to add data....\n";
   
@@ -62,14 +82,10 @@ void Run(std::string mode, std::string data_directory, const std::string& config
 
       const transform::Rigid3d final_pose =
           mapBuilderViam.map_builder_->pose_graph()->GetLocalToGlobalTransform(trajectory_id) * mapBuilderViam.local_slam_result_poses_.back();
-
-      std::cout << "Time: " << i << "\t | Final Pose: " << final_pose << std::endl;
   }
 
-  std::cout << "Size of localSLAMREsultPose = " << mapBuilderViam.local_slam_result_poses_.size() << std::endl;
-  // TODO: add map extractor
-  //PcdWritingPointsProcessor pointProcessor;
-  //pointProcessor.Process();
+  PrintState(&mapBuilderViam, trajectory_id, final_poses_non_optimized);
+  
   return;
 }
 
