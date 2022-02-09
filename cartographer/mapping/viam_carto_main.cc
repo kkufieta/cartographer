@@ -7,6 +7,19 @@
 #include "cartographer/io/image.h"
 #include "cartographer/io/file_writer.h"
 
+
+DEFINE_string(configuration_directory, "",
+              "First directory in which configuration files are searched, "
+              "second is always the Cartographer installation to allow "
+              "including files from there.");
+DEFINE_string(configuration_basename, "",
+              "Basename, i.e. not containing any directory prefix, of the "
+              "configuration file.");
+DEFINE_string(data_directory, "",
+              "Directory in which rplidar data is expected.");
+DEFINE_string(output_directory, "",
+              "Directory where map images are saved in.");
+
 namespace cartographer {
 namespace mapping {
 
@@ -36,7 +49,7 @@ void PrintState(MapBuilderViam* mapBuilderViam, int trajectory_id, std::vector<t
   return;
 }
 
-void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_builder_, int i) {
+void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_builder_, std::string output_directory, int i) {
   const double kPixelSize = 0.01;
   const auto submap_poses = map_builder_->pose_graph()->GetAllSubmapPoses();
   std::map<cartographer::mapping::SubmapId, ::cartographer::io::SubmapSlice> submap_slices;
@@ -76,13 +89,16 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
     cartographer::io::PaintSubmapSlicesResult painted_slices =
         PaintSubmapSlices(submap_slices, kPixelSize);
     auto image = cartographer::io::Image(std::move(painted_slices.surface));
-    auto file = cartographer::io::StreamFileWriter("pictures/map_" + std::to_string(i) + ".png");
+    auto file = cartographer::io::StreamFileWriter(output_directory + "/map_" + std::to_string(i) + ".png");
     image.WritePng(&file);
   }
 }
 
-void Run(std::string mode, std::string data_directory, const std::string& configuration_directory,
-         const std::string& configuration_basename) {
+void Run(std::string mode,
+        std::string data_directory,
+        std::string output_directory,
+        const std::string& configuration_directory,
+        const std::string& configuration_basename) {
 
   MapBuilderViam mapBuilderViam;
 
@@ -120,13 +136,13 @@ void Run(std::string mode, std::string data_directory, const std::string& config
 
     if (measurement.ranges.size() > 0) {
         trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);
-        PaintMap(mapBuilderViam.map_builder_, j++);
+        PaintMap(mapBuilderViam.map_builder_, output_directory, j++);
     }
   }
 
   mapBuilderViam.map_builder_->FinishTrajectory(trajectory_id);
   mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
-  PaintMap(mapBuilderViam.map_builder_, 0);
+  PaintMap(mapBuilderViam.map_builder_, output_directory, 0);
 
   if (mode == "Global2D") {
       const auto trajectory_nodes = mapBuilderViam.map_builder_->pose_graph()->GetTrajectoryNodes();
@@ -144,23 +160,35 @@ void Run(std::string mode, std::string data_directory, const std::string& config
 }  // namespace mapping
 }  // namespace cartographer
 
-int main(int argc, char** argv) {
+// Example of how to run this file: 
+// ./viam_carto_main -configuration_directory=../configuration_files -configuration_basename=viam_rplidar.lua -data_directory=~/rplidar/data
 
-  std::string FLAGS_configuration_directory = "../configuration_files";
-  std::string FLAGS_configuration_basename = "viam_rplidar.lua";
+int main(int argc, char** argv) {
+  google::InitGoogleLogging(argv[0]);
+  google::ParseCommandLineFlags(&argc, &argv, true);
+  FLAGS_logtostderr = true;
+
+  if (FLAGS_configuration_directory.empty()) {
+    std::cout << "-configuration_directory is missing.\n";
+    return EXIT_FAILURE;
+  } else if (FLAGS_configuration_basename.empty()) {
+    std::cout << "-configuration_basename is missing.\n";
+    return EXIT_FAILURE;
+  } else if (FLAGS_data_directory.empty()) {
+    std::cout << "-data_directory is missing.\n";
+    return EXIT_FAILURE;
+  } else if (FLAGS_output_directory.empty()) {
+    std::cout << "-output_directory is missing.\n";
+    return EXIT_FAILURE;
+  }
+
 
   std::string mode = "Global2D";
-
-  std::string data_directory;
-  if (argc >= 2) {
-    data_directory = argv[1];
-  }
-  else {
-    data_directory = "/home/kkufieta/rplidar/data";
-    std::cout << "No data directory specified, using default: " << data_directory << std::endl;
-  }
-
-  cartographer::mapping::Run(mode, data_directory, FLAGS_configuration_directory, FLAGS_configuration_basename);
+  cartographer::mapping::Run(mode,
+    FLAGS_data_directory,
+    FLAGS_output_directory,
+    FLAGS_configuration_directory,
+    FLAGS_configuration_basename);
 
   return 1;
 }
