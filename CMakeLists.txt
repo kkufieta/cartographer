@@ -27,7 +27,7 @@ option(BUILD_PROMETHEUS "build Prometheus monitoring support" false)
 
 include("${PROJECT_SOURCE_DIR}/cmake/functions.cmake")
 google_initialize_cartographer_project()
-google_enable_testing()
+# google_enable_testing()
 
 find_package(absl REQUIRED)
 set(BOOST_COMPONENTS iostreams)
@@ -38,7 +38,7 @@ endif()
 find_package(Boost REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 find_package(Ceres REQUIRED COMPONENTS SuiteSparse)
 find_package(Eigen3 REQUIRED)
-find_package(LuaGoogle REQUIRED)
+find_package(Lua 5.2 REQUIRED)
 
 # ****
 find_package( PCL REQUIRED )
@@ -54,7 +54,7 @@ if(WIN32)
   set(protobuf_MODULE_COMPATIBLE TRUE CACHE INTERNAL "")
   find_package(Protobuf 3.0.0 CONFIG)
 else()
-  find_package(Protobuf 3.0.0 REQUIRED)
+  find_package(Protobuf 3.4.0 REQUIRED)
 endif()
 
 if (${BUILD_GRPC})
@@ -90,9 +90,9 @@ install(DIRECTORY cmake DESTINATION share/cartographer/)
 
 file(GLOB_RECURSE ALL_LIBRARY_HDRS "cartographer/*.h")
 file(GLOB_RECURSE ALL_LIBRARY_SRCS "cartographer/*.cc")
-file(GLOB_RECURSE TEST_LIBRARY_HDRS "cartographer/fake_*.h" "cartographer/*test_helpers*.h" "cartographer/mock_*.h")
-file(GLOB_RECURSE TEST_LIBRARY_SRCS "cartographer/fake_*.cc" "cartographer/*test_helpers*.cc" "cartographer/mock_*.cc")
-file(GLOB_RECURSE ALL_TESTS "cartographer/*_test.cc")
+# file(GLOB_RECURSE TEST_LIBRARY_HDRS "cartographer/fake_*.h" "cartographer/*test_helpers*.h" "cartographer/mock_*.h")
+# file(GLOB_RECURSE TEST_LIBRARY_SRCS "cartographer/fake_*.cc" "cartographer/*test_helpers*.cc" "cartographer/mock_*.cc")
+# file(GLOB_RECURSE ALL_TESTS "cartographer/*_test.cc")
 file(GLOB_RECURSE ALL_EXECUTABLES "cartographer/*_main.cc")
 
 # Remove dotfiles/-folders that could potentially pollute the build.
@@ -100,15 +100,15 @@ file(GLOB_RECURSE ALL_DOTFILES ".*/*")
 if (ALL_DOTFILES)
   list(REMOVE_ITEM ALL_LIBRARY_HDRS ${ALL_DOTFILES})
   list(REMOVE_ITEM ALL_LIBRARY_SRCS ${ALL_DOTFILES})
-  list(REMOVE_ITEM TEST_LIBRARY_HDRS ${ALL_DOTFILES})
-  list(REMOVE_ITEM TEST_LIBRARY_SRCS ${ALL_DOTFILES})
-  list(REMOVE_ITEM ALL_TESTS ${ALL_DOTFILES})
+  # list(REMOVE_ITEM TEST_LIBRARY_HDRS ${ALL_DOTFILES})
+  # list(REMOVE_ITEM TEST_LIBRARY_SRCS ${ALL_DOTFILES})
+  # list(REMOVE_ITEM ALL_TESTS ${ALL_DOTFILES})
   list(REMOVE_ITEM ALL_EXECUTABLES ${ALL_DOTFILES})
 endif()
 list(REMOVE_ITEM ALL_LIBRARY_SRCS ${ALL_EXECUTABLES})
-list(REMOVE_ITEM ALL_LIBRARY_SRCS ${ALL_TESTS})
-list(REMOVE_ITEM ALL_LIBRARY_HDRS ${TEST_LIBRARY_HDRS})
-list(REMOVE_ITEM ALL_LIBRARY_SRCS ${TEST_LIBRARY_SRCS})
+# list(REMOVE_ITEM ALL_LIBRARY_SRCS ${ALL_TESTS})
+# list(REMOVE_ITEM ALL_LIBRARY_HDRS ${TEST_LIBRARY_HDRS})
+# list(REMOVE_ITEM ALL_LIBRARY_SRCS ${TEST_LIBRARY_SRCS})
 file(GLOB_RECURSE ALL_GRPC_FILES "cartographer/cloud/*")
 file(GLOB_RECURSE ALL_PROMETHEUS_FILES "cartographer/cloud/metrics/prometheus/*")
 list(REMOVE_ITEM ALL_GRPC_FILES ${ALL_PROMETHEUS_FILES})
@@ -195,15 +195,12 @@ endif()
 set(INSTALL_GENERATED_HDRS ${ALL_PROTO_HDRS} ${ALL_GRPC_SERVICE_HDRS})
 
 add_library(${PROJECT_NAME} STATIC ${ALL_LIBRARY_HDRS} ${ALL_LIBRARY_SRCS})
+target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC "/usr/local/include")
 
 configure_file(
   ${PROJECT_SOURCE_DIR}/cartographer/common/config.h.cmake
   ${PROJECT_BINARY_DIR}/cartographer/common/config.h)
 
-google_binary(viam_carto_main
-  SRCS
-    cartographer/mapping/viam_carto_main.cc
-)
 
 google_binary(viam_carto_loop_main
   SRCS
@@ -228,6 +225,17 @@ google_binary(cartographer_pbstream
 google_binary(cartographer_print_configuration
   SRCS
   cartographer/common/print_configuration_main.cc
+)
+
+google_binary(viam_carto_main
+  SRCS
+    cartographer/mapping/viam_carto_main.cc
+)
+
+
+google_binary(kat_main
+  SRCS
+  cartographer/mapping/kat_main.cc
 )
 
 if(${BUILD_GRPC})
@@ -324,39 +332,39 @@ set(TARGET_COMPILE_FLAGS "${TARGET_COMPILE_FLAGS} ${GOOG_CXX_FLAGS}")
 set_target_properties(${PROJECT_NAME} PROPERTIES
   COMPILE_FLAGS ${TARGET_COMPILE_FLAGS})
 
-set(TEST_LIB
-  cartographer_test_library
-)
-add_library(${TEST_LIB} ${TEST_LIBRARY_HDRS} ${TEST_LIBRARY_SRCS})
-target_include_directories(${TEST_LIB} SYSTEM PRIVATE
-  "${GMOCK_INCLUDE_DIRS}")
+# set(TEST_LIB
+#   cartographer_test_library
+# )
+# add_library(${TEST_LIB} ${TEST_LIBRARY_HDRS} ${TEST_LIBRARY_SRCS})
+# target_include_directories(${TEST_LIB} SYSTEM PRIVATE
+#   "${GMOCK_INCLUDE_DIRS}")
 # Needed for dynamically linked GTest on Windows.
 if (WIN32)
   target_compile_definitions(${TEST_LIB} PUBLIC -DGTEST_LINKED_AS_SHARED_LIBRARY)
 endif()
-target_link_libraries(${TEST_LIB} PUBLIC ${GMOCK_LIBRARY})
-target_link_libraries(${TEST_LIB} PUBLIC ${PROJECT_NAME})
-set_target_properties(${TEST_LIB} PROPERTIES
-  COMPILE_FLAGS ${TARGET_COMPILE_FLAGS})
+# target_link_libraries(${TEST_LIB} PUBLIC ${GMOCK_LIBRARY})
+# target_link_libraries(${TEST_LIB} PUBLIC ${PROJECT_NAME})
+# set_target_properties(${TEST_LIB} PROPERTIES
+#   COMPILE_FLAGS ${TARGET_COMPILE_FLAGS})
 
-foreach(ABS_FIL ${ALL_TESTS})
-  file(RELATIVE_PATH REL_FIL ${PROJECT_SOURCE_DIR} ${ABS_FIL})
-  get_filename_component(DIR ${REL_FIL} DIRECTORY)
-  get_filename_component(FIL_WE ${REL_FIL} NAME_WE)
-  # Replace slashes as required for CMP0037.
-  string(REPLACE "/" "." TEST_TARGET_NAME "${DIR}/${FIL_WE}")
-  google_test("${TEST_TARGET_NAME}" ${ABS_FIL})
-  if(${BUILD_GRPC})
-    target_link_libraries("${TEST_TARGET_NAME}" PUBLIC grpc++)
-    target_link_libraries("${TEST_TARGET_NAME}" PUBLIC async_grpc)
-  endif()
-  if(${BUILD_PROMETHEUS})
-    target_link_libraries("${TEST_TARGET_NAME}" PUBLIC ${ZLIB_LIBRARIES})
-    target_link_libraries("${TEST_TARGET_NAME}" PUBLIC prometheus-cpp-core)
-    target_link_libraries("${TEST_TARGET_NAME}" PUBLIC prometheus-cpp-pull)
-  endif()
-  target_link_libraries("${TEST_TARGET_NAME}" PUBLIC ${TEST_LIB})
-endforeach()
+# foreach(ABS_FIL ${ALL_TESTS})
+#   file(RELATIVE_PATH REL_FIL ${PROJECT_SOURCE_DIR} ${ABS_FIL})
+#   get_filename_component(DIR ${REL_FIL} DIRECTORY)
+#   get_filename_component(FIL_WE ${REL_FIL} NAME_WE)
+#   # Replace slashes as required for CMP0037.
+#   string(REPLACE "/" "." TEST_TARGET_NAME "${DIR}/${FIL_WE}")
+#   google_test("${TEST_TARGET_NAME}" ${ABS_FIL})
+#   if(${BUILD_GRPC})
+#     target_link_libraries("${TEST_TARGET_NAME}" PUBLIC grpc++)
+#     target_link_libraries("${TEST_TARGET_NAME}" PUBLIC async_grpc)
+#   endif()
+#   if(${BUILD_PROMETHEUS})
+#     target_link_libraries("${TEST_TARGET_NAME}" PUBLIC ${ZLIB_LIBRARIES})
+#     target_link_libraries("${TEST_TARGET_NAME}" PUBLIC prometheus-cpp-core)
+#     target_link_libraries("${TEST_TARGET_NAME}" PUBLIC prometheus-cpp-pull)
+#   endif()
+#   target_link_libraries("${TEST_TARGET_NAME}" PUBLIC ${TEST_LIB})
+# endforeach()
 
 # Add the binary directory first, so that port.h is included after it has
 # been generated.

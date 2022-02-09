@@ -1,7 +1,6 @@
 #include <iostream>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
-#include <liblas/liblas.hpp>
 #include <fstream>  // std::ifstream
 #include <string>
 #include <boost/filesystem.hpp>
@@ -33,7 +32,9 @@ sensor::TimedPointCloudData ReadFile::timedPointCloudDataFromPCDBuilder (std::st
     return timedPCD;
   }
 
-
+   // KAT NOTE: The file name format for the pcd files is assumed to be, e.g.:
+  // rplidar_data_2022-02-05T01_00_20.9874.pcd
+  
   int start_pos = initial_filename.find("T") + 1;
   int len_pos = initial_filename.find(".pcd") - initial_filename.find("T") - 1;
   std::string initial_file = initial_filename.substr(start_pos, len_pos);

@@ -21,11 +21,15 @@ VERSION="1.13.0"
 
 # Build and install Ceres.
 git clone https://ceres-solver.googlesource.com/ceres-solver
-cd ceres-solver
+pushd ceres-solver
 git checkout tags/${VERSION}
+
+rm -rf build
 mkdir build
-cd build
-cmake .. -G Ninja -DCXX11=ON
+pushd build
+
+cmake .. -G Ninja -DCXX11=ON -DBUILD_TESTING=OFF
 ninja
-CTEST_OUTPUT_ON_FAILURE=1 ninja test
 sudo ninja install
+popd
+popd

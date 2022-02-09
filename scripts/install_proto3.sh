@@ -21,10 +21,13 @@ VERSION="v3.4.1"
 
 # Build and install proto3.
 git clone https://github.com/google/protobuf.git
-cd protobuf
+pushd protobuf
 git checkout tags/${VERSION}
-mkdir build
-cd build
+
+rm -rf build_cmake
+mkdir build_cmake
+pushd build_cmake
+
 cmake -G Ninja \
   -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
   -DCMAKE_BUILD_TYPE=Release \
@@ -32,3 +35,5 @@ cmake -G Ninja \
   ../cmake
 ninja
 sudo ninja install
+popd
+popd
