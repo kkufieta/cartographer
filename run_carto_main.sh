@@ -6,8 +6,8 @@ set -o verbose
 VERSION="1.13.0"
 CONFIGURATION_DIRECTORY="../configuration_files"
 CONFIGURATION_BASENAME="viam_rplidar.lua"
-DATA_DIRECTORY="$HOME/rplidar/data_3"
-OUTPUT_DIRECTORY="pictures1"
+DATA_DIRECTORY="$HOME/rplidar/data"
+OUTPUT_DIRECTORY="pictures"
 
 cd build
 rm -rf ${OUTPUT_DIRECTORY}
