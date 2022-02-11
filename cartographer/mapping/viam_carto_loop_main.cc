@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
     data_directory = argv[1];
   }
   else {
-    data_directory = "/home/jeremyhyde-viam/data";
+    data_directory = "/home/jeremyhyde-viam/data_10ms_loop";
     std::cout << "No data directory specified, using default: " << data_directory << std::endl;
   }
 

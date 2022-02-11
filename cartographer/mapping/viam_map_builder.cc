@@ -121,6 +121,11 @@ cartographer::sensor::TimedPointCloudData MapBuilderViam::GenerateSaved2DRangeMe
 
     cartographer::sensor::TimedPointCloudData point_cloud_data = MapBuilderViam::GetDataFromFile(data_directory, initial_filename, i);
 
+    if (point_cloud_data.ranges.size() == 0) {
+        std::cout << "No datapoints recorded, sipping pointcloud\n";
+      return point_cloud_data;
+    }
+
     std::cout << "----------PCD-------\n";
     std::cout << "Time: " << point_cloud_data.time << std::endl;  
     std::cout << "Range (size): " << point_cloud_data.ranges.size() << std::endl;

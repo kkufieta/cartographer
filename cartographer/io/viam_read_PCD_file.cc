@@ -26,8 +26,8 @@ sensor::TimedPointCloudData ReadFile::timedPointCloudDataFromPCDBuilder (std::st
 
  pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
  auto err = pcl::io::loadPCDFile<pcl::PointXYZRGB> (file_path, *cloud);
-
-  if (err == -1) 
+  std::cout << "HIII\n";
+  if (err == -1)  
   {
     return timedPCD;
   }

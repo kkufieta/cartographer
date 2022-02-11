@@ -1,11 +1,19 @@
 #include "cartographer/mapping/viam_map_builder.h"
 #include "cartographer/mapping/map_builder.h"
+#include "cartographer/mapping/2d/probability_grid.h"
 #include "cartographer/metrics/register.h"
 #include <string>
+#include <cmath>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include "cartographer/mapping/internal/testing/test_helpers.h"
 
 #include "cartographer/io/submap_painter.h"
 #include "cartographer/io/image.h"
 #include "cartographer/io/file_writer.h"
+
+#include <condition_variable>
+#include <mutex>
 
 namespace cartographer {
 namespace mapping {
@@ -15,6 +23,14 @@ using SensorId = cartographer::mapping::TrajectoryBuilderInterface::SensorId;
 const SensorId kRangeSensorId{SensorId::SensorType::RANGE, "range"};
 const SensorId kIMUSensorId{SensorId::SensorType::IMU, "imu"};
 
+
+cartographer::transform::Rigid2d Rigid3dToRidge2dOnXY(cartographer::transform::Rigid3d map_pose3d) {
+
+  auto rot = cartographer::transform::RotationQuaternionToAngleAxisVector(map_pose3d.rotation());
+  cartographer::transform::Rigid2d map_pose2d = cartographer::transform::Rigid2d({map_pose3d.translation().x(), map_pose3d.translation().y()}, rot.z());// = cartographer::transform::Rigid2d::Translation();
+    
+  return map_pose2d;
+}
 
 void PrintState(MapBuilderViam* mapBuilderViam, int trajectory_id, std::vector<transform::Rigid3d> final_poses_non_optimized) {
   const auto trajectory_nodes = mapBuilderViam->map_builder_->pose_graph()->GetTrajectoryNodes();
@@ -41,7 +57,7 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
   const auto submap_poses = map_builder_->pose_graph()->GetAllSubmapPoses();
   std::map<cartographer::mapping::SubmapId, ::cartographer::io::SubmapSlice> submap_slices;
 
-  std::cout << "size of submap_poses: " << submap_poses.size() << std::endl;
+  std::cout << "Size of submap_poses: " << submap_poses.size() << " | Filename: pictures/map_" << std::to_string(i) << ".png" <<std::endl;
   if (submap_poses.size() > 0) {
     for (const auto& submap_id_pose : submap_poses) {
       cartographer::mapping::proto::SubmapQuery::Response response_proto;
@@ -64,7 +80,7 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
       const auto fetched_texture = submap_textures->textures.begin();
       submap_slice.width = fetched_texture->width;
       submap_slice.height = fetched_texture->height;
-      std::cout << "width, height: " << submap_slice.width << ", " << submap_slice.height << std::endl;
+      //std::cout << "width, height: " << submap_slice.width << ", " << submap_slice.height << std::endl;
       submap_slice.slice_pose = fetched_texture->slice_pose;
       submap_slice.resolution = fetched_texture->resolution;
       submap_slice.cairo_data.clear();
@@ -78,6 +94,68 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
     auto image = cartographer::io::Image(std::move(painted_slices.surface));
     auto file = cartographer::io::StreamFileWriter("pictures/map_" + std::to_string(i) + ".png");
     image.WritePng(&file);
+  }
+}
+
+void PaintMapBW(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_builder_, int i) {
+  const auto submap_list = map_builder_->pose_graph()->GetAllSubmapData();
+  int count = 0;
+  const double kPixelSize = 0.01;
+  std::cout << "HIII1: " << submap_list.size() << "\n";
+  for (const auto& map_data : submap_list) {
+    std::string label = absl::StrCat("submap_", count);
+    count++;
+    std::cout << "HIII32\n";
+    // All submaps are Submap2D with ProbabilityGrid inside.
+    const std::shared_ptr<const ::cartographer::mapping::Submap> submap = map_data.data.submap;
+    std::cout << "HIII31\n";
+    const cartographer::mapping::Submap2D* submap_2d = static_cast<const cartographer::mapping::Submap2D*>(submap.get());
+    std::cout << "HIII33  " << submap_2d << std::endl;
+    if (submap_2d == nullptr) { 
+      std::cout << "Submap is not Submap2D" << "\n";
+    }
+    std::cout << "HIII323  " << std::endl;
+
+    if (submap_2d->grid()->GetGridType() != ::cartographer::mapping::GridType::PROBABILITY_GRID) {
+      std::cout << "grid2d is not ProbabilityGrid" << "\n";
+    }
+
+    const cartographer::mapping::ProbabilityGrid* prob_grid = static_cast<const cartographer::mapping::ProbabilityGrid*>(submap_2d->grid());
+    std::cout << "HIII2\n";
+    Eigen::Array2i offset;
+
+    cartographer::mapping::CellLimits cell_limits;
+    std::cout << "HIII32\n";
+    prob_grid->ComputeCroppedLimits(&offset, &cell_limits);
+    std::cout << "HIII33\n";
+    std::vector<uint8> submap_;
+    submap_.resize(cell_limits.num_y_cells, cell_limits.num_x_cells); // rows-by-cols 4 channels image of uint8_t
+    std::cout << "HIII3\n";
+    auto submap_write_iter = submap_.begin(); // Go over each pixel row by row
+    for (const Eigen::Array2i& xy_index : cartographer::mapping::XYIndexRangeIterator(cell_limits)) {
+      uint8_t val = 0;
+      if (prob_grid->IsKnown(xy_index + offset)) {
+        // per comment in cartographer:
+        // Converts a probability to a log odds integer. 0 means unknown, [kMinLogOdds,
+        // kMaxLogOdds] is mapped to [1, 255].
+        val = cartographer::mapping::ProbabilityToLogOddsInteger(prob_grid->GetProbability(xy_index + offset));
+      }
+      *submap_write_iter = val;
+      submap_write_iter++;
+      // *submap_write_iter = val;
+      // submap_write_iter++;
+      // *submap_write_iter = val;
+      // submap_write_iter++;
+      // *submap_write_iter = val;
+      // submap_write_iter++;
+    }
+
+    auto const map_pose3d = map_data.data.pose;
+    cartographer::transform::Rigid2d offset_pose2d = cartographer::transform::Rigid2d::Translation(kPixelSize * offset.matrix().cast<double>());
+    std::cout << "offset_pose2d: " << offset_pose2d << std::endl;
+    auto const map_pose2d = Rigid3dToRidge2dOnXY(map_pose3d);
+    std::cout << "map_pose2d: " << map_pose2d << std::endl;
+    //Draw(submap_, Rigid3dToRidge2dOnXY(map_pose3d)* offset_pose2d, kPixelSize); // Draws to canvas with pose
   }
 }
 
@@ -120,20 +198,19 @@ void Run(std::string mode, std::string data_directory, const std::string& config
 
     if (measurement.ranges.size() > 0) {
         trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);
-        PaintMap(mapBuilderViam.map_builder_, j++);
+        //PaintMapBW(mapBuilderViam.map_builder_, j++);
     }
   }
 
   mapBuilderViam.map_builder_->FinishTrajectory(trajectory_id);
   mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
-  PaintMap(mapBuilderViam.map_builder_, 0);
+  PaintMapBW(mapBuilderViam.map_builder_, 0);
 
   if (mode == "Global2D") {
       const auto trajectory_nodes = mapBuilderViam.map_builder_->pose_graph()->GetTrajectoryNodes();
       const auto submap_data = mapBuilderViam.map_builder_->pose_graph()->GetAllSubmapData();
 
-      const transform::Rigid3d final_pose =
-          mapBuilderViam.map_builder_->pose_graph()->GetLocalToGlobalTransform(trajectory_id) * mapBuilderViam.local_slam_result_poses_.back();
+      // const transform::Rigid3d final_pose = mapBuilderViam.map_builder_->pose_graph()->GetLocalToGlobalTransform(trajectory_id) * mapBuilderViam.local_slam_result_poses_.back();
   }
 
   PrintState(&mapBuilderViam, trajectory_id, final_poses_non_optimized);
@@ -156,7 +233,7 @@ int main(int argc, char** argv) {
     data_directory = argv[1];
   }
   else {
-    data_directory = "/home/kkufieta/rplidar/data";
+    data_directory = "/home/jeremyhyde-viam/data";
     std::cout << "No data directory specified, using default: " << data_directory << std::endl;
   }
 
