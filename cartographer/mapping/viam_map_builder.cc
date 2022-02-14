@@ -32,6 +32,7 @@
 #include "cartographer/common/configuration_file_resolver.h"
 #include "cartographer/mapping/map_builder_interface.h"
 #include "gtest/gtest.h"
+#include "glog/logging.h"
 
 namespace cartographer {
 namespace mapping {
@@ -121,12 +122,12 @@ cartographer::sensor::TimedPointCloudData MapBuilderViam::GenerateSaved2DRangeMe
 
     cartographer::sensor::TimedPointCloudData point_cloud_data = MapBuilderViam::GetDataFromFile(data_directory, initial_filename, i);
 
-    std::cout << "----------PCD-------\n";
-    std::cout << "Time: " << point_cloud_data.time << std::endl;  
-    std::cout << "Range (size): " << point_cloud_data.ranges.size() << std::endl;
-    std::cout << "Range start (time): " << point_cloud_data.ranges[0].time << std::endl;
-    std::cout << "Range end (time): " << (point_cloud_data.ranges.back()).time << std::endl;
-    std::cout << "-----------------\n";
+    LOG(INFO) << "----------PCD-------";
+    LOG(INFO) << "Time: " << point_cloud_data.time;  
+    LOG(INFO) << "Range (size): " << point_cloud_data.ranges.size();
+    LOG(INFO) << "Range start (time): " << point_cloud_data.ranges[0].time;
+    LOG(INFO) << "Range end (time): " << (point_cloud_data.ranges.back()).time;
+    LOG(INFO) << "-----------------\n";
 
     return point_cloud_data;
   }
@@ -139,7 +140,7 @@ cartographer::sensor::TimedPointCloudData MapBuilderViam::GetDataFromFile(std::s
     files = read_file.listFilesInDirectory(data_directory);
 
     if ( files.size() == 0 ) {
-      std::cout << "No files found in data directory\n"; 
+      LOG(INFO) << "No files found in data directory\n"; 
       return point_cloud;
     }
 

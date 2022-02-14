@@ -6,6 +6,7 @@
 #include "cartographer/io/submap_painter.h"
 #include "cartographer/io/image.h"
 #include "cartographer/io/file_writer.h"
+#include "glog/logging.h"
 
 namespace cartographer {
 namespace mapping {
@@ -22,16 +23,15 @@ void PrintState(MapBuilderViam* mapBuilderViam, int trajectory_id, std::vector<t
 
   const transform::Rigid3d final_pose = mapBuilderViam->map_builder_->pose_graph()->GetLocalToGlobalTransform(trajectory_id) * mapBuilderViam->local_slam_result_poses_.back();
 
-  std::cout << "----(non-opt)---- FINAL POSES ------(opt)------\n";
+  LOG(INFO) << "----------------- POSES -----------------------";
   for (int i = 0; i < int(final_poses_non_optimized.size()); i++ ) { // file_list.size()
-    std::cout << "Pose: "  << final_poses_non_optimized[i] << "std::endl";
+    LOG(INFO) << "Pose: "  << final_poses_non_optimized[i];
     //std::cout << "Pose: " << final_poses_non_optimized[i] << "\t | \t" << final_poses_optimized[i] << "std::endl";
 
   }
-  std::cout << "-----------------------------------------------\n";
-  std::cout << "Final Pose: " << final_pose << std::endl;
-  std::cout << "-----------------------------------------------\n";
-  std::cout << "Size of localSLAMResultPose = " << mapBuilderViam->local_slam_result_poses_.size() << std::endl;
+  LOG(INFO) << "-----------------------------------------------";
+  LOG(INFO) << "Final Pose: " << final_pose << std::endl;
+  LOG(INFO) << "-----------------------------------------------";
 
   return;
 }
@@ -41,7 +41,7 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
   const auto submap_poses = map_builder_->pose_graph()->GetAllSubmapPoses();
   std::map<cartographer::mapping::SubmapId, ::cartographer::io::SubmapSlice> submap_slices;
 
-  std::cout << "size of submap_poses: " << submap_poses.size() << std::endl;
+  LOG(INFO) << "size of submap_poses: " << submap_poses.size();
   if (submap_poses.size() > 0) {
     for (const auto& submap_id_pose : submap_poses) {
       cartographer::mapping::proto::SubmapQuery::Response response_proto;
@@ -64,7 +64,7 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
       const auto fetched_texture = submap_textures->textures.begin();
       submap_slice.width = fetched_texture->width;
       submap_slice.height = fetched_texture->height;
-      std::cout << "width, height: " << submap_slice.width << ", " << submap_slice.height << std::endl;
+      //std::cout << "width, height: " << submap_slice.width << ", " << submap_slice.height << std::endl;
       submap_slice.slice_pose = fetched_texture->slice_pose;
       submap_slice.resolution = fetched_texture->resolution;
       submap_slice.cairo_data.clear();
@@ -101,7 +101,7 @@ void Run(std::string mode, std::string data_directory, const std::string& config
       {kRangeSensorId}, mapBuilderViam.trajectory_builder_options_,
       mapBuilderViam.GetLocalSlamResultCallback());
 
-  std::cout << "Trajectory ID: " << trajectory_id << "\n";
+  LOG(INFO) << "Trajectory ID: " << trajectory_id;
 
   TrajectoryBuilderInterface* trajectory_builder = mapBuilderViam.map_builder_->GetTrajectoryBuilder(trajectory_id);
 
@@ -112,7 +112,7 @@ void Run(std::string mode, std::string data_directory, const std::string& config
   //std::vector<transform::Rigid3d> final_poses_non_optimized;
   std::vector<transform::Rigid3d> final_poses_non_optimized;
 
-  std::cout << "Beginning to add data....\n";
+  LOG(INFO) << "Beginning to add data...";
   
   int j = 1;
   for (int i = 0; i < int(file_list.size()); i++ ) { // file_list.size()
@@ -151,13 +151,16 @@ int main(int argc, char** argv) {
 
   std::string mode = "Global2D";
 
+  google::InitGoogleLogging("XXX");
+  google::SetCommandLineOption("GLOG_minloglevel", "2");
+
   std::string data_directory;
   if (argc >= 2) {
     data_directory = argv[1];
   }
   else {
-    data_directory = "/home/kkufieta/rplidar/data";
-    std::cout << "No data directory specified, using default: " << data_directory << std::endl;
+    data_directory = "/home/jeremyhyde-viam/data";
+    LOG(INFO) << "No data directory specified, using default: " << data_directory << std::endl;
   }
 
   cartographer::mapping::Run(mode, data_directory, FLAGS_configuration_directory, FLAGS_configuration_basename);

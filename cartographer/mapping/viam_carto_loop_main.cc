@@ -121,7 +121,7 @@ int main(int argc, char** argv) {
   }
   else {
     data_directory = "/home/jeremyhyde-viam/data";
-    std::cout << "No data directory specified, using default: " << data_directory << std::endl;
+    LOG(INFO) << "No data directory specified, using default: " << data_directory;
   }
 
   cartographer::mapping::Run(mode, data_directory, FLAGS_configuration_directory, FLAGS_configuration_basename);

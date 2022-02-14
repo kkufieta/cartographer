@@ -119,7 +119,6 @@ class MapBuilderTestBase : public T {
         map_builder_->GetTrajectoryBuilder(trajectory_id);
     auto measurements = testing::GenerateFakeRangeMeasurements(
         kTravelDistance, kDuration, kTimeStep);
-    std::cout << "# of PCD: " << measurements.size() << std::endl;
     for (auto& measurement : measurements) {
       measurement.time += common::FromSeconds(timestamps_add_duration);
       trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);
@@ -303,7 +302,6 @@ TEST_P(MapBuilderTestByGridType, GlobalSlam2D) {
 //   SetOptionsEnableGlobalOptimization();
 //   BuildMapBuilder();
 //   int trajectory_id = CreateTrajectoryWithFakeData();
-//   std::cout << "Trajectory ID: " << trajectory_id << "\n";
 //   map_builder_->pose_graph()->RunFinalOptimization();
 //   EXPECT_TRUE(map_builder_->pose_graph()->IsTrajectoryFinished(trajectory_id));
 //   EXPECT_GE(map_builder_->pose_graph()->constraints().size(), 50);
@@ -317,7 +315,6 @@ TEST_P(MapBuilderTestByGridType, GlobalSlam2D) {
 //       5);
 //   map_builder_->pose_graph()->DeleteTrajectory(trajectory_id);
 //   int another_trajectory_id = CreateTrajectoryWithFakeData(100.);
-//   std::cout << "Trajectory ID: " << another_trajectory_id << "\n";
 //   map_builder_->pose_graph()->RunFinalOptimization();
 //   EXPECT_TRUE(
 //       map_builder_->pose_graph()->IsTrajectoryFinished(another_trajectory_id));
