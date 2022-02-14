@@ -112,22 +112,11 @@ MapBuilderInterface::LocalSlamResultCallback MapBuilderViam::GetLocalSlamResultC
   }
 
 cartographer::sensor::TimedPointCloudData MapBuilderViam::GenerateSavedRangeMeasurements(std::string data_directory, std::string initial_filename, int i) {
-    // TODO: local_to_global how to use????
-    //const Eigen::Vector3f kDirection = Eigen::Vector3f(2., 1., 0.).normalized();
     return GenerateSaved2DRangeMeasurements(initial_filename, i, data_directory);
   }
 
 cartographer::sensor::TimedPointCloudData MapBuilderViam::GenerateSaved2DRangeMeasurements(std::string initial_filename, int i, std::string data_directory) {
-
     cartographer::sensor::TimedPointCloudData point_cloud_data = MapBuilderViam::GetDataFromFile(data_directory, initial_filename, i);
-
-    std::cout << "----------PCD-------\n";
-    std::cout << "Time: " << point_cloud_data.time << std::endl;  
-    std::cout << "Range (size): " << point_cloud_data.ranges.size() << std::endl;
-    std::cout << "Range start (time): " << point_cloud_data.ranges[0].time << std::endl;
-    std::cout << "Range end (time): " << (point_cloud_data.ranges.back()).time << std::endl;
-    std::cout << "-----------------\n";
-
     return point_cloud_data;
   }
 
@@ -144,9 +133,6 @@ cartographer::sensor::TimedPointCloudData MapBuilderViam::GetDataFromFile(std::s
     }
 
     point_cloud = read_file.timedPointCloudDataFromPCDBuilder(files[i], initial_filename);
-
-    //read_file.removeFile(files[0]);
-
     return point_cloud;
   }
 

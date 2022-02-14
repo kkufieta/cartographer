@@ -77,7 +77,6 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
       const auto fetched_texture = submap_textures->textures.begin();
       submap_slice.width = fetched_texture->width;
       submap_slice.height = fetched_texture->height;
-      std::cout << "width, height: " << submap_slice.width << ", " << submap_slice.height << std::endl;
       submap_slice.slice_pose = fetched_texture->slice_pose;
       submap_slice.resolution = fetched_texture->resolution;
       submap_slice.cairo_data.clear();
@@ -162,7 +161,6 @@ void Run(std::string mode,
 
 // Example of how to run this file: 
 // ./viam_carto_main -configuration_directory=../configuration_files -configuration_basename=viam_rplidar.lua -data_directory=~/rplidar/data
-
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, true);
