@@ -14,8 +14,24 @@
 
 include "trajectory_builder.lua"
 TRAJECTORY_BUILDER.trajectory_builder_2d.use_imu_data = false
-TRAJECTORY_BUILDER.trajectory_builder_2d.submaps.num_range_data = 4
-TRAJECTORY_BUILDER.trajectory_builder_3d.submaps.num_range_data = 4
-TRAJECTORY_BUILDER.collate_fixed_frame = true
+TRAJECTORY_BUILDER.collate_fixed_frame = false
 TRAJECTORY_BUILDER.collate_landmarks = false
+
+-- NOTE: true for the ~2830 scan data set, false for the ~1365 scan data set
+TRAJECTORY_BUILDER.trajectory_builder_2d.use_online_correlative_scan_matching = true
+
+TRAJECTORY_BUILDER.trajectory_builder_2d.submaps.num_range_data = 1e5
+
+-- Good range: between 0.3 and 1.0 (for data points up to ~1365)
+TRAJECTORY_BUILDER.trajectory_builder_2d.ceres_scan_matcher.rotation_weight = 10.
+TRAJECTORY_BUILDER.trajectory_builder_2d.ceres_scan_matcher.translation_weight = 10.
+
+TRAJECTORY_BUILDER.trajectory_builder_2d.min_range = 0.2
+TRAJECTORY_BUILDER.trajectory_builder_2d.max_range = 25.
+TRAJECTORY_BUILDER.trajectory_builder_2d.missing_data_ray_length = 25.5
+
+-- NOTE: Not sure if this is helpful to set or not, and which value is good to use. 
+TRAJECTORY_BUILDER.trajectory_builder_2d.num_accumulated_range_data = 1
+
+
 return TRAJECTORY_BUILDER
