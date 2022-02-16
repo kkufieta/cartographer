@@ -65,7 +65,6 @@ class GlobalTrajectoryBuilder : public mapping::TrajectoryBuilderInterface {
             sensor_id, timed_point_cloud_data);
     if (matching_result == nullptr) {
       // The range data has not been fully accumulated yet.
-      std::cout << "returninnnggggg\n";
       return;
     }
     kLocalSlamMatchingResults->Increment();

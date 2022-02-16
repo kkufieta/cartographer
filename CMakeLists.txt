@@ -232,12 +232,6 @@ google_binary(viam_carto_main
     cartographer/mapping/viam_carto_main.cc
 )
 
-
-google_binary(kat_main
-  SRCS
-  cartographer/mapping/kat_main.cc
-)
-
 if(${BUILD_GRPC})
   google_binary(cartographer_grpc_server
     SRCS
