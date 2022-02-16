@@ -13,7 +13,33 @@
 -- limitations under the License.
 
 include "map_builder.lua"
-include "trajectory_builder_viam.lua"
+include "trajectory_builder.lua"
+
+
+-- ===== Global SLAM Options ======
+MAP_BUILDER.pose_graph.constraint_builder.sampling_ratio = 0.3
+MAP_BUILDER.pose_graph.optimize_every_n_nodes = 10
+-- MAP_BUILDER.pose_graph.constraint_builder.min_score=0.3
+MAP_BUILDER.pose_graph.global_constraint_search_after_n_seconds = 3
+
+
+-- ===== Local SLAM Options ======
+TRAJECTORY_BUILDER.trajectory_builder_2d.use_imu_data = false
+
+-- NOTE: true for the ~2830 scan data set, false for the ~1365 scan data set
+TRAJECTORY_BUILDER.trajectory_builder_2d.use_online_correlative_scan_matching = true
+TRAJECTORY_BUILDER.trajectory_builder_2d.submaps.num_range_data = 5000 -- 1e5
+
+-- Good range: between 0.3 and 1.0 (for data points up to ~1365)
+TRAJECTORY_BUILDER.trajectory_builder_2d.ceres_scan_matcher.rotation_weight = 10.
+TRAJECTORY_BUILDER.trajectory_builder_2d.ceres_scan_matcher.translation_weight = 10.
+
+TRAJECTORY_BUILDER.trajectory_builder_2d.min_range = 0.2
+TRAJECTORY_BUILDER.trajectory_builder_2d.max_range = 25.
+TRAJECTORY_BUILDER.trajectory_builder_2d.missing_data_ray_length = 5 -- 25.5
+TRAJECTORY_BUILDER.pure_localization_trimmer = {
+   max_submaps_to_keep = 3,
+ }
 
 options = {
   map_builder = MAP_BUILDER,
