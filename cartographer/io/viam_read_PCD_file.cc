@@ -23,8 +23,6 @@ sensor::TimedPointCloudData ReadFile::timedPointCloudDataFromPCDBuilder (std::st
   sensor::TimedPointCloud ranges;
   
   //Open the point cloud file
-  LOG(INFO) << "Accessing file " << file_path << " ... "; 
-
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
   auto err = pcl::io::loadPCDFile<pcl::PointXYZRGB> (file_path, *cloud);
 
@@ -59,11 +57,12 @@ sensor::TimedPointCloudData ReadFile::timedPointCloudDataFromPCDBuilder (std::st
 
   float time_delta = 3600*(hour_f-hour_i) + 60*(min_f-min_i) + (sec_f - sec_i);
 
-  // LOG(INFO) << "------------ FILE DATA -------------\n";
-  // LOG(INFO) << "Loaded " << cloud->width * cloud->height << " data points \n";
-  // LOG(INFO) << "Size " << cloud->points.size() << "\n";
-  // LOG(INFO) << "TD " << time_delta << "\n";
-  // LOG(INFO) << "------------------------------------\n";
+  LOG(INFO) << "------------ FILE DATA -------------\n";
+  LOG(INFO) << "Accessing file " << file_path << " ... "; 
+  LOG(INFO) << "Loaded " << cloud->width * cloud->height << " data points \n";
+  LOG(INFO) << "Size " << cloud->points.size() << "\n";
+  LOG(INFO) << "TD " << time_delta << "\n";
+  LOG(INFO) << "------------------------------------\n";
 
   for (size_t i = 0; i < cloud->points.size(); ++i) {
 
@@ -74,11 +73,7 @@ sensor::TimedPointCloudData ReadFile::timedPointCloudDataFromPCDBuilder (std::st
     ranges.push_back(TimedRP);
   }
 
-  //timedPCD.time = cartographer::common::FromUniversal(int64(10000 + time_delta_millis + 1000*time_delta));
-
-  //timedPCD.time = cartographer::common::FromUniversal(123) + cartographer::common::FromMilliseconds(double(time_delta));
   timedPCD.time = cartographer::common::FromUniversal(123) + cartographer::common::FromSeconds(double(time_delta));
-
   timedPCD.origin = Eigen::Vector3f::Zero();
   timedPCD.ranges = ranges;
 
@@ -100,7 +95,8 @@ std::vector<std::string> ReadFile::listFilesInDirectory(std::string data_directo
 int ReadFile::removeFile (std::string file_path)
 {
   if( remove(file_path.c_str()) != 0 ) {
-    //std::cout<< "Error removing file\n"; 
+    
+    LOG(INFO) << "Error removing file"; 
     return 0;
   }
   return 1;

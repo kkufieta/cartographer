@@ -58,14 +58,11 @@ class GlobalTrajectoryBuilder : public mapping::TrajectoryBuilderInterface {
       const sensor::TimedPointCloudData& timed_point_cloud_data) override {
     CHECK(local_trajectory_builder_)
         << "Cannot add TimedPointCloudData without a LocalTrajectoryBuilder.";
-    //std::cout << "IN SENSOR DATA\n";
-    //std::cout << "timed_point_cloud_data: " << timed_point_cloud_data.ranges.size() << std::endl;
     std::unique_ptr<typename LocalTrajectoryBuilder::MatchingResult>
         matching_result = local_trajectory_builder_->AddRangeData(
             sensor_id, timed_point_cloud_data);
     if (matching_result == nullptr) {
       // The range data has not been fully accumulated yet.
-      std::cout << "returninnnggggg\n";
       return;
     }
     kLocalSlamMatchingResults->Increment();
