@@ -131,7 +131,6 @@ LocalTrajectoryBuilder2D::AddRangeData(
   const common::Time time_first_point =
       time +
       common::FromSeconds(synchronized_data.ranges.front().point_time.time);
-  std::cout << "EXTRAPOALTORRY: " << extrapolator_->GetLastPoseTime() << "\n";
   if (time_first_point < extrapolator_->GetLastPoseTime()) {
     LOG(INFO) << "Extrapolator is still initializing.";
     return nullptr;

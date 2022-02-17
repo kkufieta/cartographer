@@ -58,8 +58,6 @@ class GlobalTrajectoryBuilder : public mapping::TrajectoryBuilderInterface {
       const sensor::TimedPointCloudData& timed_point_cloud_data) override {
     CHECK(local_trajectory_builder_)
         << "Cannot add TimedPointCloudData without a LocalTrajectoryBuilder.";
-    //std::cout << "IN SENSOR DATA\n";
-    //std::cout << "timed_point_cloud_data: " << timed_point_cloud_data.ranges.size() << std::endl;
     std::unique_ptr<typename LocalTrajectoryBuilder::MatchingResult>
         matching_result = local_trajectory_builder_->AddRangeData(
             sensor_id, timed_point_cloud_data);
@@ -70,7 +68,6 @@ class GlobalTrajectoryBuilder : public mapping::TrajectoryBuilderInterface {
     kLocalSlamMatchingResults->Increment();
     std::unique_ptr<InsertionResult> insertion_result;
     if (matching_result->insertion_result != nullptr) {
-      std::cout << "adding node\n";
       kLocalSlamInsertionResults->Increment();
       auto node_id = pose_graph_->AddNode(
           matching_result->insertion_result->constant_data, trajectory_id_,
