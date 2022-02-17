@@ -156,10 +156,10 @@ void Run(std::string mode,
 
   PaintMap(mapBuilderViam.map_builder_, output_directory, 0);
 
-  if (mode == "Global2D") {
-      const auto trajectory_nodes = mapBuilderViam.map_builder_->pose_graph()->GetTrajectoryNodes();
-      const auto submap_data = mapBuilderViam.map_builder_->pose_graph()->GetAllSubmapData();
-  }
+  // if (mode == "Global2D") {
+  //     const auto trajectory_nodes = mapBuilderViam.map_builder_->pose_graph()->GetTrajectoryNodes();
+  //     const auto submap_data = mapBuilderViam.map_builder_->pose_graph()->GetAllSubmapData();
+  // }
   
   return;
 }
