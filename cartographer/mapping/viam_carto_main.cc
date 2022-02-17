@@ -84,7 +84,6 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
           fetched_texture->pixels.intensity, fetched_texture->pixels.alpha, fetched_texture->width,
           fetched_texture->height, &submap_slice.cairo_data);
     }
-    // Generates occupancy grid as CreateOccupancyGridMsg()
     cartographer::io::PaintSubmapSlicesResult painted_slices =
         PaintSubmapSlices(submap_slices, kPixelSize);
     auto image = cartographer::io::Image(std::move(painted_slices.surface));
@@ -104,10 +103,6 @@ void Run(std::string mode,
   // Add configs
   mapBuilderViam.SetUp(configuration_directory, configuration_basename);
 
-  if (mode == "Global2D") {
-    mapBuilderViam.SetOptionsEnableGlobalOptimization();
-  }
-
   // Build MapBuilder
   mapBuilderViam.BuildMapBuilder();
 
@@ -124,37 +119,95 @@ void Run(std::string mode,
   std::vector<std::string> file_list = read_file.listFilesInDirectory(data_directory);
   std::string initial_file = file_list[0];
 
-  //std::vector<transform::Rigid3d> final_poses_non_optimized;
-  std::vector<transform::Rigid3d> final_poses_non_optimized;
-
   std::cout << "Beginning to add data....\n";
   
-  int j = 1;
-  for (int i = 0; i < int(file_list.size()); i++ ) { // file_list.size()
+  for (int i = 0; i < int(file_list.size()); i++ ) {
     auto measurement = mapBuilderViam.GenerateSavedRangeMeasurements(data_directory, initial_file, i);
 
     if (measurement.ranges.size() > 0) {
         trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);
-        PaintMap(mapBuilderViam.map_builder_, output_directory, j++);
+        if (i < 3 || i % 50 == 0) {
+          PaintMap(mapBuilderViam.map_builder_, output_directory, 1 + i);
+        }
     }
   }
+
+  // Save the map in a pbstream file
+  const std::string map_file = "./map_garbage.pbstream";
+  mapBuilderViam.map_builder_->SerializeStateToFile(true, map_file);
 
   mapBuilderViam.map_builder_->FinishTrajectory(trajectory_id);
   mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
   PaintMap(mapBuilderViam.map_builder_, output_directory, 0);
-
-  if (mode == "Global2D") {
-      const auto trajectory_nodes = mapBuilderViam.map_builder_->pose_graph()->GetTrajectoryNodes();
-      const auto submap_data = mapBuilderViam.map_builder_->pose_graph()->GetAllSubmapData();
-
-      const transform::Rigid3d final_pose =
-          mapBuilderViam.map_builder_->pose_graph()->GetLocalToGlobalTransform(trajectory_id) * mapBuilderViam.local_slam_result_poses_.back();
-  }
-
-  PrintState(&mapBuilderViam, trajectory_id, final_poses_non_optimized);
   
   return;
 }
+
+void LoadMapAndRun(std::string mode,
+                  std::string data_directory,
+                  std::string output_directory,
+                  const std::string& configuration_directory,
+                  const std::string& configuration_basename) {
+
+  MapBuilderViam mapBuilderViam;
+
+  // Add configs
+  mapBuilderViam.SetUp(configuration_directory, configuration_basename);
+
+  // Build MapBuilder
+  mapBuilderViam.BuildMapBuilder();
+  const std::string map_file = "./map_2.pbstream";
+  std::map<int, int> mapping_of_trajectory_ids = mapBuilderViam.map_builder_->LoadStateFromFile(map_file, true);
+  for(std::map<int, int>::const_iterator it = mapping_of_trajectory_ids.begin(); it != mapping_of_trajectory_ids.end(); ++it)
+  {
+      std::cout << "Trajectory ids mapping: " << it->first << " " << it->second << "\n";
+  }
+
+  // auto* options =
+  //     mapBuilderViam.trajectory_builder_options_.mutable_pure_localization_trimmer();
+  // options->set_max_submaps_to_keep(3);
+  // mapBuilderViam.trajectory_builder_options_.set_pure_localization(true);
+
+  // Build TrajectoryBuilder
+  int trajectory_id = mapBuilderViam.map_builder_->AddTrajectoryBuilder(
+      {kRangeSensorId}, mapBuilderViam.trajectory_builder_options_,
+      mapBuilderViam.GetLocalSlamResultCallback());
+
+  std::cout << "Trajectory ID: " << trajectory_id << "\n";
+
+  TrajectoryBuilderInterface* trajectory_builder = mapBuilderViam.map_builder_->GetTrajectoryBuilder(trajectory_id);
+
+  cartographer::io::ReadFile read_file;
+  std::vector<std::string> file_list = read_file.listFilesInDirectory(data_directory);
+  std::string initial_file = file_list[0];
+
+  std::cout << "Beginning to add data....\n";
+  PaintMap(mapBuilderViam.map_builder_, output_directory, -99);
+  
+  for (int i = 500; i < int(file_list.size()); i++ ) { // file_list.size()
+    auto measurement = mapBuilderViam.GenerateSavedRangeMeasurements(data_directory, initial_file, i);
+
+    if (measurement.ranges.size() > 0) {
+        std::cout << "adding sensor data" << std::endl;
+        trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);
+        std::cout << "painting map" << std::endl;
+        if (i < 3 || i % 100 == 0) {
+          PaintMap(mapBuilderViam.map_builder_, output_directory, 1 + i++);
+        }
+    }
+  }
+
+
+  PaintMap(mapBuilderViam.map_builder_, output_directory, -2);
+  mapBuilderViam.map_builder_->FinishTrajectory(0);
+  mapBuilderViam.map_builder_->FinishTrajectory(trajectory_id);
+  mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
+  PaintMap(mapBuilderViam.map_builder_, output_directory, -1);
+
+  return;
+}
+
+
 
 }  // namespace mapping
 }  // namespace cartographer
@@ -181,12 +234,19 @@ int main(int argc, char** argv) {
   }
 
 
-  std::string mode = "Global2D";
+  std::string mode = "DON'T USE RIGHT NOW!!!!!!!";
   cartographer::mapping::Run(mode,
     FLAGS_data_directory,
     FLAGS_output_directory,
     FLAGS_configuration_directory,
     FLAGS_configuration_basename);
+
+
+  // cartographer::mapping::LoadMapAndRun(mode,
+  //   FLAGS_data_directory,
+  //   FLAGS_output_directory,
+  //   FLAGS_configuration_directory,
+  //   FLAGS_configuration_basename);
 
   return 1;
 }

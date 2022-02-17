@@ -34,9 +34,15 @@ class MapBuilderViam {
 
   void BuildMapBuilder();
 
+  // ---- WARNING ----
+  // DON'T USE THESE!!! Before these are actually useful, we would need to find out
+  // how to tune them. And even then, they're only useful for specific platforms,
+  // since cartographer is HIGHLY sensitive to tuning parameters.
+  // Use with extra care.
   void SetOptionsTo3D();
   void SetOptionsToTSDF2D();
   void SetOptionsEnableGlobalOptimization();
+  // ---- END OF WARNING ----
 
   MapBuilderInterface::LocalSlamResultCallback GetLocalSlamResultCallback();
 

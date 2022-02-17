@@ -68,6 +68,12 @@ void MapBuilderViam::BuildMapBuilder() {
     map_builder_ = CreateMapBuilder(map_builder_options_);
   }
 
+
+  // ---- WARNING ----
+  // DON'T USE THESE!!! Before these are actually useful, we would need to find out
+  // how to tune them. And even then, they're only useful for specific platforms,
+  // since cartographer is HIGHLY sensitive to tuning parameters.
+  // Use with extra care.
 void MapBuilderViam::SetOptionsTo3D() {
     map_builder_options_.set_use_trajectory_builder_2d(false);
     map_builder_options_.set_use_trajectory_builder_3d(true);
@@ -99,6 +105,7 @@ void MapBuilderViam::SetOptionsEnableGlobalOptimization() {
         ->mutable_motion_filter_options()
         ->set_max_distance_meters(0);
   }
+  // ---- END OF WARNING ----
 
 MapBuilderInterface::LocalSlamResultCallback MapBuilderViam::GetLocalSlamResultCallback() {
     return [=](const int trajectory_id, const ::cartographer::common::Time time,
