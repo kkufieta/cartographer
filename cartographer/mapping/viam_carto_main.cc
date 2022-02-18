@@ -8,6 +8,11 @@
 #include "cartographer/io/file_writer.h"
 #include "glog/logging.h"
 
+#include "cartographer/mapping/proto/trajectory.pb.h"
+#include "cartographer/mapping/proto/pose_graph.pb.h"
+
+#include "cartographer/io/viam_draw_trajectories.h"
+
 
 DEFINE_string(configuration_directory, "",
               "First directory in which configuration files are searched, "
@@ -83,6 +88,13 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
       submap_slice.surface = ::cartographer::io::DrawTexture(
           fetched_texture->pixels.intensity, fetched_texture->pixels.alpha, fetched_texture->width,
           fetched_texture->height, &submap_slice.cairo_data);
+
+      // Plots trajectories on submap slice
+      const auto trajectory_nodes = map_builder_->pose_graph()->GetTrajectoryNodes();
+      const auto trajectory_node_poses = map_builder_->pose_graph()->GetTrajectoryNodePoses();
+      const cartographer::io::FloatColor color = {{1.f, 0.f, 0.f}};
+      cartographer::io::DrawTrajectoryNodes(trajectory_nodes, submap_slice.resolution, submap_slice.slice_pose, 
+                                            color, submap_slice.surface.get());
     }
     cartographer::io::PaintSubmapSlicesResult painted_slices =
         PaintSubmapSlices(submap_slices, kPixelSize);
@@ -126,19 +138,21 @@ void Run(std::string mode,
 
     if (measurement.ranges.size() > 0) {
         trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);
-        if (i < 3 || i % 50 == 0) {
-          PaintMap(mapBuilderViam.map_builder_, output_directory, 1 + i);
+        auto num_nodes = mapBuilderViam.map_builder_->pose_graph()->GetTrajectoryNodes().size();
+        if (num_nodes < 3 || num_nodes % 50 == 0) {
+          PaintMap(mapBuilderViam.map_builder_, output_directory, num_nodes);
         }
     }
   }
 
   // Save the map in a pbstream file
   const std::string map_file = "./map_garbage.pbstream";
+  mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
   mapBuilderViam.map_builder_->SerializeStateToFile(true, map_file);
 
   mapBuilderViam.map_builder_->FinishTrajectory(trajectory_id);
   mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
-  PaintMap(mapBuilderViam.map_builder_, output_directory, 0);
+  PaintMap(mapBuilderViam.map_builder_, output_directory, -1);
   
   return;
 }
@@ -156,8 +170,9 @@ void LoadMapAndRun(std::string mode,
 
   // Build MapBuilder
   mapBuilderViam.BuildMapBuilder();
-  const std::string map_file = "./map_2.pbstream";
+  const std::string map_file = "./map_large.pbstream";
   std::map<int, int> mapping_of_trajectory_ids = mapBuilderViam.map_builder_->LoadStateFromFile(map_file, true);
+  mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
   for(std::map<int, int>::const_iterator it = mapping_of_trajectory_ids.begin(); it != mapping_of_trajectory_ids.end(); ++it)
   {
       std::cout << "Trajectory ids mapping: " << it->first << " " << it->second << "\n";
@@ -191,7 +206,7 @@ void LoadMapAndRun(std::string mode,
         std::cout << "adding sensor data" << std::endl;
         trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);
         std::cout << "painting map" << std::endl;
-        if (i < 3 || i % 100 == 0) {
+        if (i < 3 || i % 25 == 0) {
           PaintMap(mapBuilderViam.map_builder_, output_directory, 1 + i++);
         }
     }
@@ -215,9 +230,9 @@ void LoadMapAndRun(std::string mode,
 // Example of how to run this file: 
 // ./viam_carto_main -configuration_directory=../configuration_files -configuration_basename=viam_rplidar.lua -data_directory=~/rplidar/data
 int main(int argc, char** argv) {
-  google::InitGoogleLogging(argv[0]);
+  google::InitGoogleLogging("XXX");
   google::ParseCommandLineFlags(&argc, &argv, true);
-  FLAGS_logtostderr = true;
+  FLAGS_logtostderr = false;
 
   if (FLAGS_configuration_directory.empty()) {
     std::cout << "-configuration_directory is missing.\n";
@@ -233,9 +248,7 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  google::InitGoogleLogging("XXX");
   google::SetCommandLineOption("GLOG_minloglevel", "2");
-
 
   std::string mode = "DON'T USE RIGHT NOW!!!!!!!";
   cartographer::mapping::Run(mode,
