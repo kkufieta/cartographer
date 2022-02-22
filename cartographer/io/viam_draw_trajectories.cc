@@ -22,44 +22,51 @@
 namespace cartographer {
 namespace io {
 
-void DrawTrajectoryNodes(const cartographer::mapping::MapById<cartographer::mapping::NodeId, cartographer::mapping::TrajectoryNode>& trajectory_nodes,//const cartographer::mapping::MapById<cartographer::mapping::NodeId, cartographer::mapping::TrajectoryNodePose>& trajectory_node_poses,
+cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(const cartographer::mapping::MapById<cartographer::mapping::NodeId, cartographer::mapping::TrajectoryNode>& trajectory_nodes,//const cartographer::mapping::MapById<cartographer::mapping::NodeId, cartographer::mapping::TrajectoryNodePose>& trajectory_node_poses,
                     float resolution, cartographer::transform::Rigid3d slice_pose,
                     const cartographer::io::FloatColor& color,
                     cairo_surface_t* surface) {
-
-  if (trajectory_nodes.size() == 0) {
-    return;
-  }
 
   double kTrajectoryWidth = .75;
   double kTrajectoryEndMarkers = 4;
   constexpr double kAlpha = 1.;
 
-  auto cr = cartographer::io::MakeUniqueCairoPtr(cairo_create(surface));
+  //auto cr = cartographer::io::MakeUniqueCairoPtr(cairo_create(surface));
+  //auto cr = cartographer::io::MakeUniqueCairoSurfacePtr(cairo_create(surface));
+  auto cr = cairo_create(surface);
 
-  cairo_set_source_rgba(cr.get(), color[0], color[1], color[2], kAlpha);
-  cairo_set_line_width(cr.get(), kTrajectoryWidth);
+  if (trajectory_nodes.size() == 0) {
+    //return cartographer::io::MakeUniqueCairoSurfacePtr(cairo_get_target(cr.get()));
+    return cartographer::io::MakeUniqueCairoSurfacePtr(cairo_get_target(cr));
+    //return cr;
+  }
+
+  cairo_set_source_rgba(cr, color[0], color[1], color[2], kAlpha);
+  cairo_set_line_width(cr, kTrajectoryWidth);
 
   // Draw trajectory path
   for (const auto& node : trajectory_nodes) {
+    if (node.id.trajectory_id != 0) {
     const auto t_global_pose = node.data.global_pose;
     const Eigen::Vector3d pixel = t_global_pose.translation();
 
     double px =  (slice_pose.translation().y() - pixel.y())/resolution;
     double py = (slice_pose.translation().x() - pixel.x())/resolution;
 
-    cairo_line_to(cr.get(), px, py);
+    cairo_line_to(cr, px, py);
+    }
   }
-  cairo_stroke(cr.get());
+  cairo_stroke(cr);
 
   // Draw origin point
   double origin_x =  slice_pose.translation().y()/resolution;
   double origin_y = slice_pose.translation().x()/resolution;
 
-  cairo_arc(cr.get(), origin_x, origin_y, kTrajectoryEndMarkers, 0, 2 * M_PI);
-  cairo_fill(cr.get());
+  cairo_arc(cr, origin_x, origin_y, kTrajectoryEndMarkers, 0, 2 * M_PI);
+  cairo_fill(cr);
 
-  return;
+  return cartographer::io::MakeUniqueCairoSurfacePtr(cairo_get_target(cr));
+  //return cartographer::io::MakeUniqueCairoSurfacePtr(cairo_get_target(cr.get()));
 }
 
 }  // namespace io

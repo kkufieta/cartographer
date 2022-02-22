@@ -26,13 +26,13 @@ TRAJECTORY_BUILDER.trajectory_builder_2d.max_range = 25.
 TRAJECTORY_BUILDER.trajectory_builder_2d.missing_data_ray_length = 25
 
 -- tuning these:
-TRAJECTORY_BUILDER.trajectory_builder_2d.submaps.num_range_data = 300
+TRAJECTORY_BUILDER.trajectory_builder_2d.submaps.num_range_data = 10
 -- TRAJECTORY_BUILDER.trajectory_builder_2d.submaps.range_data_inserter.probability_grid_range_data_inserter.miss_probability = 0.40 -- 0.49
 -- TRAJECTORY_BUILDER.trajectory_builder_2d.submaps.range_data_inserter.probability_grid_range_data_inserter.hit_probability = 0.65 -- 0.55
--- TRAJECTORY_BUILDER.trajectory_builder_2d.motion_filter.max_distance_meters = 0
--- TRAJECTORY_BUILDER.trajectory_builder_2d.ceres_scan_matcher.occupied_space_weight = 5.
--- TRAJECTORY_BUILDER.trajectory_builder_2d.ceres_scan_matcher.translation_weight = 1
--- TRAJECTORY_BUILDER.trajectory_builder_2d.ceres_scan_matcher.rotation_weight = 1
+TRAJECTORY_BUILDER.trajectory_builder_2d.motion_filter.max_distance_meters = 0
+TRAJECTORY_BUILDER.trajectory_builder_2d.ceres_scan_matcher.occupied_space_weight = 5.
+TRAJECTORY_BUILDER.trajectory_builder_2d.ceres_scan_matcher.translation_weight = 5
+TRAJECTORY_BUILDER.trajectory_builder_2d.ceres_scan_matcher.rotation_weight = 2
 
 
 -- Revo, another low-cost lidar:
@@ -42,10 +42,10 @@ TRAJECTORY_BUILDER.trajectory_builder_2d.submaps.num_range_data = 300
 -- POSE_GRAPH.constraint_builder.min_score = 0.65
 
 -- ===== Global SLAM Options ======
-MAP_BUILDER.pose_graph.optimize_every_n_nodes = 0
-MAP_BUILDER.pose_graph.constraint_builder.log_match = true
+MAP_BUILDER.pose_graph.optimize_every_n_nodes = 2
+-- MAP_BUILDER.pose_graph.constraint_builder.log_match = true
 -- MAP_BUILDER.pose_graph.global_constraint_search_after_n_seconds = 0.1
-MAP_BUILDER.pose_graph.constraint_builder.sampling_ratio = 0.9
+-- MAP_BUILDER.pose_graph.constraint_builder.sampling_ratio = 0.9
 -- MAP_BUILDER.pose_graph.constraint_builder.loop_closure_translation_weight = 1
 -- MAP_BUILDER.pose_graph.constraint_builder.loop_closure_rotation_weight = 4
 -- MAP_BUILDER.pose_graph.constraint_builder.fast_correlative_scan_matcher.linear_search_window = 20
@@ -61,8 +61,6 @@ MAP_BUILDER.pose_graph.constraint_builder.sampling_ratio = 0.9
 -- MAP_BUILDER.pose_graph.constraint_builder.ceres_scan_matcher.rotation_weight = 0.1
 -- MAP_BUILDER.pose_graph.matcher_translation_weight = 0.1
 -- MAP_BUILDER.pose_graph.matcher_rotation_weight = 0.1
--- MAP_BUILDER.pose_graph.optimization_problem.odometry_translation_weight = 1
--- MAP_BUILDER.pose_graph.optimization_problem.odometry_rotation_weight = 1
 -- MAP_BUILDER.pose_graph.matcher_rotation_weight = 1
 -- MAP_BUILDER.pose_graph.optimization_problem.ceres_solver_options.max_num_iterations = 100
 -- MAP_BUILDER.pose_graph.optimization_problem.local_slam_pose_translation_weight = 1e8

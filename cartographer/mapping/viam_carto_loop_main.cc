@@ -72,7 +72,7 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
 
       // Plots trajectories on submap slice
       const auto trajectory_nodes = map_builder_->pose_graph()->GetTrajectoryNodes();
-      const auto trajectory_node_poses = map_builder_->pose_graph()->GetTrajectoryNodePoses();
+      //const auto trajectory_node_poses = map_builder_->pose_graph()->GetTrajectoryNodePoses();
       const cartographer::io::FloatColor color = {{1.f, 0.f, 0.f}};
       cartographer::io::DrawTrajectoryNodes(trajectory_nodes, submap_slice.resolution, submap_slice.slice_pose, 
                                             color, submap_slice.surface.get());
@@ -143,7 +143,7 @@ void Run(std::string mode,
 
     if (measurement.ranges.size() > 0) {
         trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);
-        if (i %10 == 0) {PaintMap(mapBuilderViam.map_builder_, output_directory, j++);}
+        if (i %200 == 0) {PaintMap(mapBuilderViam.map_builder_, output_directory, j++);}
     }
   }
 

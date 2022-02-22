@@ -6,7 +6,7 @@ set -o verbose
 VERSION="1.13.0"
 CONFIGURATION_DIRECTORY="../configuration_files"
 CONFIGURATION_BASENAME="viam_rplidar.lua"
-DATA_DIRECTORY="$HOME/rplidar/data"
+DATA_DIRECTORY="$HOME/data_slam_1"
 OUTPUT_DIRECTORY="pictures"
 
 cd build

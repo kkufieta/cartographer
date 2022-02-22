@@ -137,9 +137,9 @@ void Run(std::string mode,
 
   // Save the map in a pbstream file
 
-  mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
-  const std::string map_file = "./map_viam_floor3_test.pbstream";
-  mapBuilderViam.map_builder_->SerializeStateToFile(true, map_file);
+  //mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
+  //const std::string map_file = "./map_viam_floor3_test.pbstream";
+  //mapBuilderViam.map_builder_->SerializeStateToFile(true, map_file);
 
   mapBuilderViam.map_builder_->FinishTrajectory(trajectory_id);
   mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
@@ -258,18 +258,18 @@ int main(int argc, char** argv) {
 
 
 
-  // cartographer::mapping::Run(mode,
-  //   FLAGS_data_directory,
-  //   FLAGS_output_directory,
-  //   FLAGS_configuration_directory,
-  //   FLAGS_configuration_basename);
-
-
-  cartographer::mapping::LoadMapAndRun(mode,
+  cartographer::mapping::Run(mode,
     FLAGS_data_directory,
     FLAGS_output_directory,
     FLAGS_configuration_directory,
     FLAGS_configuration_basename);
+
+
+//   cartographer::mapping::LoadMapAndRun(mode,
+//     FLAGS_data_directory,
+//     FLAGS_output_directory,
+//     FLAGS_configuration_directory,
+//     FLAGS_configuration_basename);
 
   return 1;
 }
