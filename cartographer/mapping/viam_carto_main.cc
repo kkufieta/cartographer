@@ -46,67 +46,51 @@ const SensorId kRangeSensorId{SensorId::SensorType::RANGE, "range"};
 const SensorId kIMUSensorId{SensorId::SensorType::IMU, "imu"};
 
 
-void PrintState(MapBuilderViam* mapBuilderViam, int trajectory_id, std::vector<transform::Rigid3d> final_poses_non_optimized) {
-  const auto trajectory_nodes = mapBuilderViam->map_builder_->pose_graph()->GetTrajectoryNodes();
-  const auto submap_data = mapBuilderViam->map_builder_->pose_graph()->GetAllSubmapData();
-
-  const transform::Rigid3d final_pose = mapBuilderViam->map_builder_->pose_graph()->GetLocalToGlobalTransform(trajectory_id) * mapBuilderViam->local_slam_result_poses_.back();
-
-  LOG(INFO) << "----------------- POSES -----------------------";
-  for (int i = 0; i < int(final_poses_non_optimized.size()); i++ ) { // file_list.size()
-    LOG(INFO) << "Pose: "  << final_poses_non_optimized[i];
-    //std::cout << "Pose: " << final_poses_non_optimized[i] << "\t | \t" << final_poses_optimized[i] << "std::endl";
-
-  }
-  LOG(INFO) << "-----------------------------------------------";
-  LOG(INFO) << "Final Pose: " << final_pose << std::endl;
-  LOG(INFO) << "-----------------------------------------------";
-
-  return;
-}
-
 void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_builder_, std::string output_directory, std::string appendix) {
   const double kPixelSize = 0.01;
   const auto submap_poses = map_builder_->pose_graph()->GetAllSubmapPoses();
   std::map<cartographer::mapping::SubmapId, ::cartographer::io::SubmapSlice> submap_slices;
 
-  LOG(INFO) << "size of submap_poses: " << submap_poses.size();
   if (submap_poses.size() > 0) {
     for (const auto& submap_id_pose : submap_poses) {
-      cartographer::mapping::proto::SubmapQuery::Response response_proto;
-      const std::string error = map_builder_->SubmapToProto(submap_id_pose.id, &response_proto);
+        cartographer::mapping::proto::SubmapQuery::Response response_proto;
+        const std::string error = map_builder_->SubmapToProto(submap_id_pose.id, &response_proto);
 
-      auto submap_textures = absl::make_unique<::cartographer::io::SubmapTextures>();
-      submap_textures->version = response_proto.submap_version();
-      for (const auto& texture_proto : response_proto.textures()) {
-        const std::string compressed_cells(texture_proto.cells().begin(),
-                                          texture_proto.cells().end());
-        submap_textures->textures.emplace_back(::cartographer::io::SubmapTexture{
-            ::cartographer::io::UnpackTextureData(compressed_cells, texture_proto.width(),
-                                                  texture_proto.height()),
-            texture_proto.width(), texture_proto.height(), texture_proto.resolution(),
-            cartographer::transform::ToRigid3(texture_proto.slice_pose())});
+        auto submap_textures = absl::make_unique<::cartographer::io::SubmapTextures>();
+        submap_textures->version = response_proto.submap_version();
+        for (const auto& texture_proto : response_proto.textures()) {
+          const std::string compressed_cells(texture_proto.cells().begin(),
+                                            texture_proto.cells().end());
+          submap_textures->textures.emplace_back(::cartographer::io::SubmapTexture{
+              ::cartographer::io::UnpackTextureData(compressed_cells, texture_proto.width(),
+                                                    texture_proto.height()),
+              texture_proto.width(), texture_proto.height(), texture_proto.resolution(),
+              cartographer::transform::ToRigid3(texture_proto.slice_pose())});
+        }
+
+        // Prepares SubmapSlice
+        ::cartographer::io::SubmapSlice& submap_slice = submap_slices[submap_id_pose.id];
+        const auto fetched_texture = submap_textures->textures.begin();
+        submap_slice.pose = submap_id_pose.data.pose;
+        submap_slice.width = fetched_texture->width;
+        submap_slice.height = fetched_texture->height;
+        submap_slice.slice_pose = fetched_texture->slice_pose;
+        submap_slice.resolution = fetched_texture->resolution;
+        submap_slice.cairo_data.clear();
+
+        // Paint map
+        // if (submap_id_pose.id.trajectory_id == 0) {
+          submap_slice.surface = ::cartographer::io::DrawTexture(
+            fetched_texture->pixels.intensity, fetched_texture->pixels.alpha, fetched_texture->width,
+            fetched_texture->height, &submap_slice.cairo_data);
+        // } 
+        // Paint trajectory, filtered to paint only trajectory with id == 0
+        const auto trajectory_nodes = map_builder_->pose_graph()->GetTrajectoryNodes();
+        const cartographer::io::FloatColor color = {{1.f, 0.f, 0.f}};
+        submap_slice.surface = cartographer::io::DrawTrajectoryNodes(trajectory_nodes, submap_slice.resolution, submap_slice.slice_pose, 
+                                            color, submap_slice.surface.get());
       }
 
-      // Prepares SubmapSlice
-      ::cartographer::io::SubmapSlice& submap_slice = submap_slices[submap_id_pose.id];
-      const auto fetched_texture = submap_textures->textures.begin();
-      submap_slice.width = fetched_texture->width;
-      submap_slice.height = fetched_texture->height;
-      submap_slice.slice_pose = fetched_texture->slice_pose;
-      submap_slice.resolution = fetched_texture->resolution;
-      submap_slice.cairo_data.clear();
-      submap_slice.surface = ::cartographer::io::DrawTexture(
-          fetched_texture->pixels.intensity, fetched_texture->pixels.alpha, fetched_texture->width,
-          fetched_texture->height, &submap_slice.cairo_data);
-
-      // Plots trajectories on submap slice
-      const auto trajectory_nodes = map_builder_->pose_graph()->GetTrajectoryNodes();
-      const auto trajectory_node_poses = map_builder_->pose_graph()->GetTrajectoryNodePoses();
-      const cartographer::io::FloatColor color = {{1.f, 0.f, 0.f}};
-      cartographer::io::DrawTrajectoryNodes(trajectory_nodes, submap_slice.resolution, submap_slice.slice_pose, 
-                                            color, submap_slice.surface.get());
-    }
     cartographer::io::PaintSubmapSlicesResult painted_slices =
         PaintSubmapSlices(submap_slices, kPixelSize);
     auto image = cartographer::io::Image(std::move(painted_slices.surface));
