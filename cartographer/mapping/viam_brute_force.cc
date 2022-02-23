@@ -34,7 +34,7 @@ using SensorId = cartographer::mapping::TrajectoryBuilderInterface::SensorId;
 const SensorId kRangeSensorId{SensorId::SensorType::RANGE, "range"};
 const SensorId kIMUSensorId{SensorId::SensorType::IMU, "imu"};
 
-void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_builder_, std::string output_directory, int i) {
+void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_builder_, std::string output_directory, std::string filename, int i) {
   const double kPixelSize = 0.01;
   const auto submap_poses = map_builder_->pose_graph()->GetAllSubmapPoses();
   std::map<cartographer::mapping::SubmapId, ::cartographer::io::SubmapSlice> submap_slices;
@@ -90,7 +90,7 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
     cartographer::io::PaintSubmapSlicesResult painted_slices =
         PaintSubmapSlices(submap_slices, kPixelSize);
     auto image = cartographer::io::Image(std::move(painted_slices.surface));
-    auto file = cartographer::io::StreamFileWriter(output_directory + "/map_" + std::to_string(i) + ".png");
+    auto file = cartographer::io::StreamFileWriter(output_directory + filename);
     image.WritePng(&file);
   }
 }
@@ -101,7 +101,35 @@ void Run(std::string mode,
         const std::string& configuration_directory,
         const std::string& configuration_basename) {
 
-  MapBuilderViam mapBuilderViam;
+//   MapBuilderViam mapBuilderViam;
+
+//   // Add configs
+//   mapBuilderViam.SetUp(configuration_directory, configuration_basename);
+
+//   // Build MapBuilder
+//   mapBuilderViam.BuildMapBuilder();
+
+//   // Build TrajectoryBuilder
+//   int trajectory_id = mapBuilderViam.map_builder_->AddTrajectoryBuilder(
+//       {kRangeSensorId}, mapBuilderViam.trajectory_builder_options_,
+//       mapBuilderViam.GetLocalSlamResultCallback());
+
+//   LOG(INFO) << "Trajectory ID: " << trajectory_id;
+
+//   TrajectoryBuilderInterface* trajectory_builder = mapBuilderViam.map_builder_->GetTrajectoryBuilder(trajectory_id);
+
+//   cartographer::io::ReadFile read_file;
+//   std::vector<std::string> file_list = read_file.listFilesInDirectory(data_directory);
+//   std::string initial_file = file_list[0];
+
+  int num_range_data = 10;
+  for (int optimize_every_n_nodes = 0; optimize_every_n_nodes <= 5; optimize_every_n_nodes++ ) {
+  //  for (int num_range_data = 1; num_range_data <= 5; num_range_data++ ) {
+        for (int occupied_space_weight = 1; occupied_space_weight <= 5; occupied_space_weight++ ) {
+            for (int translation_weight = 1; translation_weight <= 5; translation_weight++ ) {
+                for (int rotation_weight = 1; rotation_weight <= 5; rotation_weight++ ) {
+  
+    MapBuilderViam mapBuilderViam;
 
   // Add configs
   mapBuilderViam.SetUp(configuration_directory, configuration_basename);
@@ -122,7 +150,18 @@ void Run(std::string mode,
   std::vector<std::string> file_list = read_file.listFilesInDirectory(data_directory);
   std::string initial_file = file_list[0];
 
+  
+  mapBuilderViam.trajectory_builder_options_.mutable_trajectory_builder_2d_options()->mutable_submaps_options()->set_num_range_data(num_range_data * 100.0);  
+  mapBuilderViam.map_builder_options_.mutable_pose_graph_options()->set_optimize_every_n_nodes(optimize_every_n_nodes * 2.0);
+  mapBuilderViam.trajectory_builder_options_.mutable_trajectory_builder_2d_options()->mutable_ceres_scan_matcher_options()->set_occupied_space_weight(occupied_space_weight * 1.);
+  mapBuilderViam.trajectory_builder_options_.mutable_trajectory_builder_2d_options()->mutable_ceres_scan_matcher_options()->set_translation_weight(translation_weight * 1.);
+  mapBuilderViam.trajectory_builder_options_.mutable_trajectory_builder_2d_options()->mutable_ceres_scan_matcher_options()->set_occupied_space_weight(rotation_weight * 1.);
+
+  std::string filename = "/map_opt" + std::to_string(optimize_every_n_nodes*2) + "_ocu" + std::to_string(occupied_space_weight*100) + "_tw" + std::to_string(translation_weight) + "_rw" + std::to_string(rotation_weight) + "_range" + std::to_string(num_range_data*100) + ".png";
+  //---------------------------------------------------------------------------------
+
   std::cout << "Beginning to add data....\n";
+  std::cout << "Result will be added to file " << filename << "\n";
   
   for (int i = 0; i < int(file_list.size()); i++ ) {
     auto measurement = mapBuilderViam.GenerateSavedRangeMeasurements(data_directory, initial_file, i);
@@ -143,7 +182,15 @@ void Run(std::string mode,
 
   mapBuilderViam.map_builder_->FinishTrajectory(trajectory_id);
   mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
-  PaintMap(mapBuilderViam.map_builder_, output_directory, 0);
+  PaintMap(mapBuilderViam.map_builder_, output_directory, filename, 0);
+
+  //---------------------------------------------------------------------------------
+                      }
+                  }
+              }
+          }
+      //}
+
   
   return;
 }
@@ -192,7 +239,7 @@ void LoadMapAndRun(std::string mode,
   std::string initial_file = file_list[0];
 
   std::cout << "Beginning to add data....\n";
-  PaintMap(mapBuilderViam.map_builder_, output_directory, -99);
+  //PaintMap(mapBuilderViam.map_builder_, output_directory, -99);
   
   for (int i = 500; i < 2000; i++ ) { // file_list.size()
     auto measurement = mapBuilderViam.GenerateSavedRangeMeasurements(data_directory, initial_file, i);
@@ -201,13 +248,13 @@ void LoadMapAndRun(std::string mode,
         //std::cout << "adding sensor data" << std::endl;
         trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);
         //std::cout << "painting map" << std::endl;
-        if (i < 3 || i % 10 == 0) {
-          PaintMap(mapBuilderViam.map_builder_, output_directory, 1 + i++);
-        }
+        // if (i < 3 || i % 10 == 0) {
+        //   PaintMap(mapBuilderViam.map_builder_, output_directory, 1 + i++);
+        // }
     }
   }
 
-  PaintMap(mapBuilderViam.map_builder_, output_directory, -2);
+  //PaintMap(mapBuilderViam.map_builder_, output_directory, -2);
   mapBuilderViam.map_builder_->FinishTrajectory(0);
   mapBuilderViam.map_builder_->FinishTrajectory(trajectory_id);
   mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
@@ -216,7 +263,7 @@ void LoadMapAndRun(std::string mode,
   mapBuilderViam.map_builder_->SerializeStateToFile(true, map_file_out);
 
 
-  PaintMap(mapBuilderViam.map_builder_, output_directory, -1);
+  //PaintMap(mapBuilderViam.map_builder_, output_directory, -1);
 
   return;
 }

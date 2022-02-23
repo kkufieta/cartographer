@@ -12,7 +12,7 @@ OUTPUT_DIRECTORY="pictures"
 cd build
 rm -rf ${OUTPUT_DIRECTORY}
 mkdir ${OUTPUT_DIRECTORY}
-./viam_carto_main  \
+./viam_brute_force  \
     -configuration_directory=${CONFIGURATION_DIRECTORY}  \
     -configuration_basename=${CONFIGURATION_BASENAME}  \
     -data_directory=${DATA_DIRECTORY} \
