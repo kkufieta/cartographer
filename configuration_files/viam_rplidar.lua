@@ -26,13 +26,17 @@ TRAJECTORY_BUILDER.trajectory_builder_2d.max_range = 25.
 TRAJECTORY_BUILDER.trajectory_builder_2d.missing_data_ray_length = 25
 
 -- tuning these:
-TRAJECTORY_BUILDER.trajectory_builder_2d.submaps.num_range_data = 10
+TRAJECTORY_BUILDER.trajectory_builder_2d.submaps.num_range_data = 1000
 -- TRAJECTORY_BUILDER.trajectory_builder_2d.submaps.range_data_inserter.probability_grid_range_data_inserter.miss_probability = 0.40 -- 0.49
 -- TRAJECTORY_BUILDER.trajectory_builder_2d.submaps.range_data_inserter.probability_grid_range_data_inserter.hit_probability = 0.65 -- 0.55
 TRAJECTORY_BUILDER.trajectory_builder_2d.motion_filter.max_distance_meters = 0
-TRAJECTORY_BUILDER.trajectory_builder_2d.ceres_scan_matcher.occupied_space_weight = 5.
-TRAJECTORY_BUILDER.trajectory_builder_2d.ceres_scan_matcher.translation_weight = 5
-TRAJECTORY_BUILDER.trajectory_builder_2d.ceres_scan_matcher.rotation_weight = 2
+TRAJECTORY_BUILDER.trajectory_builder_2d.ceres_scan_matcher.occupied_space_weight = 1.
+TRAJECTORY_BUILDER.trajectory_builder_2d.ceres_scan_matcher.translation_weight = 2.
+TRAJECTORY_BUILDER.trajectory_builder_2d.ceres_scan_matcher.rotation_weight = 8.
+
+-- MAP_BUILDER.pose_graph.ceres_scan_matcher.occupied_space_weight = 1.
+-- MAP_BUILDER.pose_graph.ceres_scan_matcher.translation_weight = 2.
+-- MAP_BUILDER.pose_graph.ceres_scan_matcher.rotation_weight = 8.
 
 
 -- Revo, another low-cost lidar:
@@ -40,6 +44,11 @@ TRAJECTORY_BUILDER.trajectory_builder_2d.ceres_scan_matcher.rotation_weight = 2
 
 -- POSE_GRAPH.optimize_every_n_nodes = 35
 -- POSE_GRAPH.constraint_builder.min_score = 0.65
+
+
+
+
+
 
 -- ===== Global SLAM Options ======
 MAP_BUILDER.pose_graph.optimize_every_n_nodes = 2
@@ -66,6 +75,19 @@ MAP_BUILDER.pose_graph.optimize_every_n_nodes = 2
 -- MAP_BUILDER.pose_graph.optimization_problem.local_slam_pose_translation_weight = 1e8
 -- MAP_BUILDER.pose_graph.optimization_problem.local_slam_pose_rotation_weight = 1e8
 -- MAP_BUILDER.pose_graph.optimization_problem.huber_scale = 1e4
+
+
+-- TRAJECTORY_BUILDER_2D.use_online_correlative_scan_matching = true
+-- TRAJECTORY_BUILDER_2D.real_time_correlative_scan_matcher.linear_search_window = 0.1
+-- TRAJECTORY_BUILDER_2D.real_time_correlative_scan_matcher.translation_delta_cost_weight = 10.
+-- TRAJECTORY_BUILDER_2D.real_time_correlative_scan_matcher.rotation_delta_cost_weight = 1e-1
+-- TRAJECTORY_BUILDER_2D.motion_filter.max_angle_radians = math.rad(0.2)
+-- -- for current lidar only 1 is good value
+-- TRAJECTORY_BUILDER_2D.num_accumulated_range_data = 1
+-- POSE_GRAPH.constraint_builder.min_score = 0.65
+-- POSE_GRAPH.constraint_builder.global_localization_min_score = 0.65
+-- POSE_GRAPH.optimization_problem.huber_scale = 1e2
+-- POSE_GRAPH.optimize_every_n_nodes = 35
 
 options = {
   map_builder = MAP_BUILDER,

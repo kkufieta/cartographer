@@ -38,8 +38,10 @@ void CairoPaintSubmapSlices(
     if (submap_slice.surface == nullptr) {
       return;
     }
+
+    std::cout << pair.first << " | " << submap_slice.pose << ", " << submap_slice.slice_pose << std::endl;
     const Eigen::Matrix4d homo =
-        ToEigen(submap_slice.pose * submap_slice.slice_pose).matrix();
+        ToEigen(submap_slice.pose).matrix();
 
     cairo_save(cr);
     cairo_matrix_t matrix;

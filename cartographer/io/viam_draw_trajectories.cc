@@ -46,7 +46,7 @@ cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(const cartographer::
 
   // Draw trajectory path
   for (const auto& node : trajectory_nodes) {
-    if (node.id.trajectory_id != 0) {
+    //if (node.id.trajectory_id != 0) {
     const auto t_global_pose = node.data.global_pose;
     const Eigen::Vector3d pixel = t_global_pose.translation();
 
@@ -54,7 +54,7 @@ cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(const cartographer::
     double py = (slice_pose.translation().x() - pixel.x())/resolution;
 
     cairo_line_to(cr, px, py);
-    }
+    //}
   }
   cairo_stroke(cr);
 

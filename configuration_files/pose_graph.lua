@@ -19,8 +19,8 @@ POSE_GRAPH = {
     max_constraint_distance = 15.,
     min_score = 0.55,
     global_localization_min_score = 0.6,
-    loop_closure_translation_weight = 1.1e4,
-    loop_closure_rotation_weight = 1e5,
+    loop_closure_translation_weight = 1.1e4, --
+    loop_closure_rotation_weight = 1e5, --
     log_matches = true,
     fast_correlative_scan_matcher = {
       linear_search_window = 7.,
@@ -28,9 +28,9 @@ POSE_GRAPH = {
       branch_and_bound_depth = 7,
     },
     ceres_scan_matcher = {
-      occupied_space_weight = 20.,
-      translation_weight = 10.,
-      rotation_weight = 1.,
+      occupied_space_weight = 1.0e5, --20
+      translation_weight = 2.0e4,   --10
+      rotation_weight = 8.0e4, --1
       ceres_solver_options = {
         use_nonmonotonic_steps = true,
         max_num_iterations = 10,
@@ -59,8 +59,8 @@ POSE_GRAPH = {
       },
     },
   },
-  matcher_translation_weight = 5e2,
-  matcher_rotation_weight = 1.6e3,
+  matcher_translation_weight = 5e2, --
+  matcher_rotation_weight = 1.6e3, ---
   optimization_problem = {
     huber_scale = 1e1,
     acceleration_weight = 1.1e2,

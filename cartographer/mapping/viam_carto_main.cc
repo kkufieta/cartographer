@@ -66,6 +66,7 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
         const auto fetched_texture = submap_textures->textures.begin();
         submap_slice.width = fetched_texture->width;
         submap_slice.height = fetched_texture->height;
+        submap_slice.pose = cartographer::transform::Rigid3d::Identity();//fetched_texture->pose;
         submap_slice.slice_pose = fetched_texture->slice_pose;
         submap_slice.resolution = fetched_texture->resolution;
         submap_slice.cairo_data.clear();
@@ -162,7 +163,7 @@ void LoadMapAndRun(std::string mode,
   // Build MapBuilder
   mapBuilderViam.BuildMapBuilder();
   const std::string map_file = "./map_viam_floor3.pbstream";
-  std::map<int, int> mapping_of_trajectory_ids = mapBuilderViam.map_builder_->LoadStateFromFile(map_file, true);
+  std::map<int, int> mapping_of_trajectory_ids = mapBuilderViam.map_builder_->LoadStateFromFile(map_file, false);
   mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
 
   auto apriori_submap_poses = mapBuilderViam.map_builder_->pose_graph()->GetAllSubmapPoses();
@@ -258,18 +259,18 @@ int main(int argc, char** argv) {
 
 
 
-  // cartographer::mapping::Run(mode,
-  //   FLAGS_data_directory,
-  //   FLAGS_output_directory,
-  //   FLAGS_configuration_directory,
-  //   FLAGS_configuration_basename);
-
-
-  cartographer::mapping::LoadMapAndRun(mode,
+  cartographer::mapping::Run(mode,
     FLAGS_data_directory,
     FLAGS_output_directory,
     FLAGS_configuration_directory,
     FLAGS_configuration_basename);
+
+
+  // cartographer::mapping::LoadMapAndRun(mode,
+  //   FLAGS_data_directory,
+  //   FLAGS_output_directory,
+  //   FLAGS_configuration_directory,
+  //   FLAGS_configuration_basename);
 
   return 1;
 }

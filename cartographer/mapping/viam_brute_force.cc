@@ -95,6 +95,23 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
   }
 }
 
+void PrintProgressBar(int i, int total) {
+  float progress = float(i)/float(total);
+
+    int barWidth = 120;
+
+    std::cout << "[";
+    int pos = barWidth * progress;
+    for (int i = 0; i < barWidth; ++i) {
+        if (i < pos) std::cout << "=";
+        else if (i == pos) std::cout << ">";
+        else std::cout << " ";
+    }
+    std::cout << "] " << int(progress * 100.0) << " %\r";
+    std::cout.flush();
+
+}
+
 void Run(std::string mode,
         std::string data_directory,
         std::string output_directory,
@@ -155,9 +172,18 @@ void Run(std::string mode,
   mapBuilderViam.map_builder_options_.mutable_pose_graph_options()->set_optimize_every_n_nodes(optimize_every_n_nodes * 2.0);
   mapBuilderViam.trajectory_builder_options_.mutable_trajectory_builder_2d_options()->mutable_ceres_scan_matcher_options()->set_occupied_space_weight(occupied_space_weight * 1.);
   mapBuilderViam.trajectory_builder_options_.mutable_trajectory_builder_2d_options()->mutable_ceres_scan_matcher_options()->set_translation_weight(translation_weight * 1.);
-  mapBuilderViam.trajectory_builder_options_.mutable_trajectory_builder_2d_options()->mutable_ceres_scan_matcher_options()->set_occupied_space_weight(rotation_weight * 1.);
+  mapBuilderViam.trajectory_builder_options_.mutable_trajectory_builder_2d_options()->mutable_ceres_scan_matcher_options()->set_rotation_weight(rotation_weight * 1.);
 
-  std::string filename = "/map_opt" + std::to_string(optimize_every_n_nodes*2) + "_ocu" + std::to_string(occupied_space_weight*100) + "_tw" + std::to_string(translation_weight) + "_rw" + std::to_string(rotation_weight) + "_range" + std::to_string(num_range_data*100) + ".png";
+
+
+  std::cout << "RangeData: " << mapBuilderViam.trajectory_builder_options_.mutable_trajectory_builder_2d_options()->mutable_submaps_options()->num_range_data() << std::endl;
+  std::cout << "optimize_every_n_nodes: " <<  mapBuilderViam.map_builder_options_.mutable_pose_graph_options()->optimize_every_n_nodes() << std::endl;
+  std::cout << "occupied_space_weight: " << mapBuilderViam.trajectory_builder_options_.mutable_trajectory_builder_2d_options()->mutable_ceres_scan_matcher_options()->occupied_space_weight() << std::endl;
+  std::cout << "translation_weight: " << mapBuilderViam.trajectory_builder_options_.mutable_trajectory_builder_2d_options()->mutable_ceres_scan_matcher_options()->translation_weight() << std::endl;
+  std::cout << "rotation_weight: " << mapBuilderViam.trajectory_builder_options_.mutable_trajectory_builder_2d_options()->mutable_ceres_scan_matcher_options()->rotation_weight() << std::endl;
+  std::string filename = "/map_opt" + std::to_string(optimize_every_n_nodes*2) + "_ocu" + std::to_string(occupied_space_weight) + "_tw" + std::to_string(translation_weight) + "_rw" + std::to_string(rotation_weight) + "_range" + std::to_string(num_range_data*100) + ".png";
+  
+  
   //---------------------------------------------------------------------------------
 
   std::cout << "Beginning to add data....\n";
@@ -165,7 +191,7 @@ void Run(std::string mode,
   
   for (int i = 0; i < int(file_list.size()); i++ ) {
     auto measurement = mapBuilderViam.GenerateSavedRangeMeasurements(data_directory, initial_file, i);
-
+    PrintProgressBar(i, file_list.size());
     if (measurement.ranges.size() > 0) {
         trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);
         // if (i < 3 || i % 50 == 0) {
@@ -173,7 +199,7 @@ void Run(std::string mode,
         // }
     }
   }
-
+  std::cout << std::endl;
   // Save the map in a pbstream file
 
   //mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
