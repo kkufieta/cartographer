@@ -66,7 +66,7 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
         const auto fetched_texture = submap_textures->textures.begin();
         submap_slice.width = fetched_texture->width;
         submap_slice.height = fetched_texture->height;
-        submap_slice.pose = cartographer::transform::Rigid3d::Identity();//fetched_texture->pose;
+        submap_slice.pose = submap_id_pose.data.pose;//fetched_texture->pose;
         submap_slice.slice_pose = fetched_texture->slice_pose;
         submap_slice.resolution = fetched_texture->resolution;
         submap_slice.cairo_data.clear();
@@ -79,10 +79,11 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
         } //else {
         //if (submap_id_pose.id.trajectory_id != 0) {
           std::cout << " painting trajectory\n"; 
+          cartographer::mapping::SubmapId submap_id = submap_id_pose.id;
           const auto trajectory_nodes = map_builder_->pose_graph()->GetTrajectoryNodes();
           const cartographer::io::FloatColor color = {{1.f, 0.f, 0.f}}; //cartographer::io::GetColor(submap_id_pose.id.trajectory_id);
           submap_slice.surface = cartographer::io::DrawTrajectoryNodes(trajectory_nodes, submap_slice.resolution, submap_slice.slice_pose, 
-                                              color, submap_slice.surface.get());
+                                              color, submap_id, submap_slice.surface.get());
 
        //}
       }

@@ -34,7 +34,7 @@ using PoseToPixelFunction = std::function<Eigen::Array2i(const transform::Rigid3
 // pixel on 'surface'.
 cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(const cartographer::mapping::MapById<cartographer::mapping::NodeId, cartographer::mapping::TrajectoryNode>& trajectory_nodes_poses,
                     float resolution, cartographer::transform::Rigid3d slice_pose,
-                    const cartographer::io::FloatColor& color,
+                    const cartographer::io::FloatColor& color, cartographer::mapping::SubmapId submap_id,
                     cairo_surface_t* surface);
 
 }  // namespace io

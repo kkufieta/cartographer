@@ -24,7 +24,7 @@ namespace io {
 
 cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(const cartographer::mapping::MapById<cartographer::mapping::NodeId, cartographer::mapping::TrajectoryNode>& trajectory_nodes,//const cartographer::mapping::MapById<cartographer::mapping::NodeId, cartographer::mapping::TrajectoryNodePose>& trajectory_node_poses,
                     float resolution, cartographer::transform::Rigid3d slice_pose,
-                    const cartographer::io::FloatColor& color,
+                    const cartographer::io::FloatColor& color, cartographer::mapping::SubmapId submap_id,
                     cairo_surface_t* surface) {
 
   double kTrajectoryWidth = .75;
@@ -49,11 +49,17 @@ cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(const cartographer::
     //if (node.id.trajectory_id != 0) {
     const auto t_global_pose = node.data.global_pose;
     const Eigen::Vector3d pixel = t_global_pose.translation();
+    //std::cout << node.id << " | " << submap_id << "\n";
+    
+    
+    if (submap_id.trajectory_id == node.id.trajectory_id && submap_id.submap_index == 0) {
+     // std::cout << "MATCH!\n";
 
     double px =  (slice_pose.translation().y() - pixel.y())/resolution;
     double py = (slice_pose.translation().x() - pixel.x())/resolution;
 
     cairo_line_to(cr, px, py);
+    }
     //}
   }
   cairo_stroke(cr);

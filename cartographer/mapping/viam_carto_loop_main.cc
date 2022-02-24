@@ -71,11 +71,11 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
           fetched_texture->height, &submap_slice.cairo_data);
 
       // Plots trajectories on submap slice
-      const auto trajectory_nodes = map_builder_->pose_graph()->GetTrajectoryNodes();
-      //const auto trajectory_node_poses = map_builder_->pose_graph()->GetTrajectoryNodePoses();
-      const cartographer::io::FloatColor color = {{1.f, 0.f, 0.f}};
-      cartographer::io::DrawTrajectoryNodes(trajectory_nodes, submap_slice.resolution, submap_slice.slice_pose, 
-                                            color, submap_slice.surface.get());
+      // const auto trajectory_nodes = map_builder_->pose_graph()->GetTrajectoryNodes();
+      // //const auto trajectory_node_poses = map_builder_->pose_graph()->GetTrajectoryNodePoses();
+      // const cartographer::io::FloatColor color = {{1.f, 0.f, 0.f}};
+      // cartographer::io::DrawTrajectoryNodes(n, submap_slice.slice_pose, 
+      //                                       color, submap_slice.surface.get());
     }
 
     // Paints submap from slices

@@ -77,11 +77,11 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
             fetched_texture->height, &submap_slice.cairo_data);
         } //else {
         //if (submap_id_pose.id.trajectory_id != 0) {
-          std::cout << " painting trajectory\n"; 
-          const auto trajectory_nodes = map_builder_->pose_graph()->GetTrajectoryNodes();
-          const cartographer::io::FloatColor color = {{1.f, 0.f, 0.f}}; //cartographer::io::GetColor(submap_id_pose.id.trajectory_id);
-          submap_slice.surface = cartographer::io::DrawTrajectoryNodes(trajectory_nodes, submap_slice.resolution, submap_slice.slice_pose, 
-                                              color, submap_slice.surface.get());
+        //   std::cout << " painting trajectory\n"; 
+        //   const auto trajectory_nodes = map_builder_->pose_graph()->GetTrajectoryNodes();
+        //   const cartographer::io::FloatColor color = {{1.f, 0.f, 0.f}}; //cartographer::io::GetColor(submap_id_pose.id.trajectory_id);
+        //   submap_slice.surface = cartographer::io::DrawTrajectoryNodes(trajectory_nodes, submap_slice.resolution, submap_slice.slice_pose, 
+        //                                       color, submap_slice.surface.get());
 
        //}
       }
