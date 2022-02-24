@@ -40,6 +40,9 @@ cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(
 
   cairo_set_line_width(cr, kTrajectoryWidth);
 
+  double px_curr = 0;
+  double py_curr = 0;
+
   // Draw trajectory paths
   for (const int trajectory_id : trajectory_nodes.trajectory_ids()) {
     cartographer::io::FloatColor color = GetColor(trajectory_id);
@@ -52,6 +55,9 @@ cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(
       double px =  (slice_pose.translation().y() - pixel.y())/resolution;
       double py = (slice_pose.translation().x() - pixel.x())/resolution;
 
+      px_curr = px;
+      py_curr = py;
+
       cairo_line_to(cr, px, py);
     }
     cairo_stroke(cr);
@@ -62,7 +68,11 @@ cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(
 
     cairo_arc(cr, origin_x, origin_y, kTrajectoryEndMarkers, 0, 2 * M_PI);
     cairo_fill(cr);
+
+    
   }
+  cairo_arc(cr, px_curr, py_curr, kTrajectoryEndMarkers, 0, 2 * M_PI);
+  cairo_fill(cr);
 
   return cartographer::io::MakeUniqueCairoSurfacePtr(cairo_get_target(cr));
 }
