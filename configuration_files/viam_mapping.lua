@@ -26,7 +26,7 @@ TRAJECTORY_BUILDER.trajectory_builder_2d.max_range = 25.
 TRAJECTORY_BUILDER.trajectory_builder_2d.missing_data_ray_length = 25
 
 -- tuneable:
-TRAJECTORY_BUILDER.trajectory_builder_2d.submaps.num_range_data = 4000
+TRAJECTORY_BUILDER.trajectory_builder_2d.submaps.num_range_data = 100
 
 -- ===== Global SLAM Options ======
 -- tuneable:

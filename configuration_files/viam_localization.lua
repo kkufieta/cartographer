@@ -33,7 +33,7 @@ TRAJECTORY_BUILDER.pure_localization_trimmer = {
 
 -- ===== Global SLAM Options ======
 -- tuneable:
-MAP_BUILDER.pose_graph.optimize_every_n_nodes = 100
+MAP_BUILDER.pose_graph.optimize_every_n_nodes = 3
 
 -- ===== Return Options ======
 options = {

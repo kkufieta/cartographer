@@ -27,7 +27,6 @@ cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(
                                               cartographer::mapping::TrajectoryNode>& trajectory_nodes,
         float resolution,
         cartographer::transform::Rigid3d slice_pose,
-        const cartographer::io::FloatColor& color,
         cairo_surface_t* surface) {
 
   auto cr = cairo_create(surface);
@@ -39,29 +38,31 @@ cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(
   double kTrajectoryEndMarkers = 4;
   constexpr double kAlpha = 1.;
 
-  cairo_set_source_rgba(cr, color[0], color[1], color[2], kAlpha);
   cairo_set_line_width(cr, kTrajectoryWidth);
 
-  // Draw trajectory path
-  for (const auto& node : trajectory_nodes) {
-    // if (node.id.trajectory_id != 0) {
-    const auto t_global_pose = node.data.global_pose;
-    const Eigen::Vector3d pixel = t_global_pose.translation();
+  // Draw trajectory paths
+  for (const int trajectory_id : trajectory_nodes.trajectory_ids()) {
+    cartographer::io::FloatColor color = GetColor(trajectory_id);
+    cairo_set_source_rgba(cr, color[0], color[1], color[2], kAlpha);
 
-    double px =  (slice_pose.translation().y() - pixel.y())/resolution;
-    double py = (slice_pose.translation().x() - pixel.x())/resolution;
+    for (const auto& node : trajectory_nodes.trajectory(trajectory_id)) {
+      const auto t_global_pose = node.data.global_pose;
+      const Eigen::Vector3d pixel = t_global_pose.translation();
 
-    cairo_line_to(cr, px, py);
-    // }
+      double px =  (slice_pose.translation().y() - pixel.y())/resolution;
+      double py = (slice_pose.translation().x() - pixel.x())/resolution;
+
+      cairo_line_to(cr, px, py);
+    }
+    cairo_stroke(cr);
+
+    // Draw origin point for each trajectory
+    double origin_x =  slice_pose.translation().y()/resolution;
+    double origin_y = slice_pose.translation().x()/resolution;
+
+    cairo_arc(cr, origin_x, origin_y, kTrajectoryEndMarkers, 0, 2 * M_PI);
+    cairo_fill(cr);
   }
-  cairo_stroke(cr);
-
-  // Draw origin point
-  double origin_x =  slice_pose.translation().y()/resolution;
-  double origin_y = slice_pose.translation().x()/resolution;
-
-  cairo_arc(cr, origin_x, origin_y, kTrajectoryEndMarkers, 0, 2 * M_PI);
-  cairo_fill(cr);
 
   return cartographer::io::MakeUniqueCairoSurfacePtr(cairo_get_target(cr));
 }

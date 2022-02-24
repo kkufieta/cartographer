@@ -24,8 +24,10 @@ DEFINE_string(configuration_mapping_basename, "",
 DEFINE_string(configuration_localization_basename, "",
               "Basename, i.e. not containing any directory prefix, of the "
               "localization configuration file.");
-DEFINE_string(data_directory, "",
-              "Directory in which rplidar data is expected.");
+DEFINE_string(mapping_data_directory, "",
+              "Directory in which rplidar data for mapping is expected.");
+DEFINE_string(localization_data_directory, "",
+              "Directory in which rplidar data for localization is expected.");
 DEFINE_string(output_directory, "",
               "Directory where map images are saved in.");
 DEFINE_string(map_output_name, "",
@@ -46,9 +48,11 @@ const SensorId kRangeSensorId{SensorId::SensorType::RANGE, "range"};
 const SensorId kIMUSensorId{SensorId::SensorType::IMU, "imu"};
 
 
-void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_builder_, std::string output_directory, std::string appendix) {
+void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_builder_,
+              std::string output_directory,
+              std::string appendix) {
   const double kPixelSize = 0.01;
-  const auto submap_poses = map_builder_->pose_graph()->GetAllSubmapPoses();
+  auto submap_poses = map_builder_->pose_graph()->GetAllSubmapPoses();
   std::map<cartographer::mapping::SubmapId, ::cartographer::io::SubmapSlice> submap_slices;
 
   if (submap_poses.size() > 0) {
@@ -78,17 +82,15 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
         submap_slice.resolution = fetched_texture->resolution;
         submap_slice.cairo_data.clear();
 
-        // Paint map
-        // if (submap_id_pose.id.trajectory_id == 0) {
-          submap_slice.surface = ::cartographer::io::DrawTexture(
-            fetched_texture->pixels.intensity, fetched_texture->pixels.alpha, fetched_texture->width,
-            fetched_texture->height, &submap_slice.cairo_data);
-        // } 
-        // Paint trajectory, filtered to paint only trajectory with id == 0
-        const auto trajectory_nodes = map_builder_->pose_graph()->GetTrajectoryNodes();
-        const cartographer::io::FloatColor color = {{1.f, 0.f, 0.f}};
-        submap_slice.surface = cartographer::io::DrawTrajectoryNodes(trajectory_nodes, submap_slice.resolution, submap_slice.slice_pose, 
-                                            color, submap_slice.surface.get());
+        submap_slice.surface = ::cartographer::io::DrawTexture(
+          fetched_texture->pixels.intensity, fetched_texture->pixels.alpha, fetched_texture->width,
+          fetched_texture->height, &submap_slice.cairo_data);
+
+        if (submap_id_pose.id.submap_index == 0 && submap_id_pose.id.trajectory_id == 0) {
+          const auto trajectory_nodes = map_builder_->pose_graph()->GetTrajectoryNodes();
+          submap_slice.surface = cartographer::io::DrawTrajectoryNodes(trajectory_nodes, submap_slice.resolution, submap_slice.slice_pose, 
+                                              submap_slice.surface.get());
+        }
       }
 
     cartographer::io::PaintSubmapSlicesResult painted_slices =
@@ -99,13 +101,13 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
   }
 }
 
-void Run(const std::string& mode,
-        const std::string& data_directory,
-        const std::string& output_directory,
-        const std::string& configuration_directory,
-        const std::string& configuration_basename,
-        const std::string& map_output_name,
-        int picture_print_interval) {
+void CreateMap(const std::string& mode,
+              const std::string& data_directory,
+              const std::string& output_directory,
+              const std::string& configuration_directory,
+              const std::string& configuration_basename,
+              const std::string& map_output_name,
+              int picture_print_interval) {
 
   MapBuilderViam mapBuilderViam;
 
@@ -169,6 +171,8 @@ void LoadMapAndRun(const std::string& mode,
 
   // Build MapBuilder
   mapBuilderViam.BuildMapBuilder();
+
+  // ASSUMPTION: Loaded trajectory has trajectory_id == 0
   const std::string map_file = "./" + map_output_name;
   std::map<int, int> mapping_of_trajectory_ids = mapBuilderViam.map_builder_->LoadStateFromFile(map_file, true);
   mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
@@ -223,7 +227,6 @@ void LoadMapAndRun(const std::string& mode,
 }
 
 void DrawSavedMap(const std::string& mode,
-        const std::string& data_directory,
         const std::string& output_directory,
         const std::string& configuration_directory,
         const std::string& configuration_basename,
@@ -273,8 +276,11 @@ int main(int argc, char** argv) {
   } else if (FLAGS_configuration_mapping_basename.empty()) {
     std::cout << "-configuration_mapping_basename is missing.\n";
     return EXIT_FAILURE;
-  } else if (FLAGS_data_directory.empty()) {
-    std::cout << "-data_directory is missing.\n";
+  } else if (FLAGS_mapping_data_directory.empty()) {
+    std::cout << "-mapping_data_directory is missing.\n";
+    return EXIT_FAILURE;
+  } else if (FLAGS_localization_data_directory.empty()) {
+    std::cout << "-localization_data_directory is missing.\n";
     return EXIT_FAILURE;
   } else if (FLAGS_output_directory.empty()) {
     std::cout << "-output_directory is missing.\n";
@@ -289,8 +295,8 @@ int main(int argc, char** argv) {
   std::string mode = "DON'T USE RIGHT NOW!!!!!!!";
   if (FLAGS_mapping == true) {
     std::cout << "Mapping!" << std::endl;
-    cartographer::mapping::Run(mode,
-      FLAGS_data_directory,
+    cartographer::mapping::CreateMap(mode,
+      FLAGS_mapping_data_directory,
       FLAGS_output_directory,
       FLAGS_configuration_directory,
       FLAGS_configuration_mapping_basename,
@@ -301,7 +307,7 @@ int main(int argc, char** argv) {
   if (FLAGS_localization == true) {
     std::cout << "Localizing!" << std::endl;
     cartographer::mapping::LoadMapAndRun(mode,
-      FLAGS_data_directory,
+      FLAGS_localization_data_directory,
       FLAGS_output_directory,
       FLAGS_configuration_directory,
       FLAGS_configuration_localization_basename,
@@ -310,7 +316,6 @@ int main(int argc, char** argv) {
 
     std::cout << "Drawing saved map!" << std::endl;
     cartographer::mapping::DrawSavedMap(mode,
-      FLAGS_data_directory,
       FLAGS_output_directory,
       FLAGS_configuration_directory,
       FLAGS_configuration_localization_basename,

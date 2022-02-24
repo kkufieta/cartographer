@@ -7,13 +7,13 @@ set -o verbose
 MAPPING="true"
 LOCALIZATION="true"
 
-DATA_DIRECTORY="$HOME/rplidar/data_first_success"
-# DATA_DIRECTORY="$HOME/rplidar/data"
+MAPPING_DATA_DIRECTORY="$HOME/rplidar/data"
+LOCALIZATION_DATA_DIRECTORY="$HOME/rplidar/data_first_success"
 
-OUTPUT_DIRECTORY="pic_large_02182022"
-MAP_OUTPUT_NAME="map_02182022.pbstream"
+OUTPUT_DIRECTORY="pic_large_02242022"
+MAP_OUTPUT_NAME="map_02242022.pbstream"
 
-PICTURE_PRINT_INTERVAL="500"
+PICTURE_PRINT_INTERVAL="200"
 # ----
 
 CONFIGURATION_DIRECTORY="../configuration_files"
@@ -29,7 +29,8 @@ mkdir ${OUTPUT_DIRECTORY}
     -configuration_localization_basename=${CONFIGURATION_LOCALIZATION_BASENAME}  \
     -mapping=${MAPPING}  \
     -localization=${LOCALIZATION}  \
-    -data_directory=${DATA_DIRECTORY} \
+    -mapping_data_directory=${MAPPING_DATA_DIRECTORY} \
+    -localization_data_directory=${LOCALIZATION_DATA_DIRECTORY} \
     -output_directory=${OUTPUT_DIRECTORY} \
     -map_output_name=${MAP_OUTPUT_NAME} \
     -picture_print_interval=${PICTURE_PRINT_INTERVAL}

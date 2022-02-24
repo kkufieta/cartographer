@@ -37,7 +37,6 @@ cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(
                                          cartographer::mapping::TrajectoryNode>& trajectory_nodes_poses,
     float resolution,
     cartographer::transform::Rigid3d slice_pose,
-    const cartographer::io::FloatColor& color,
     cairo_surface_t* surface);
 
 }  // namespace io
