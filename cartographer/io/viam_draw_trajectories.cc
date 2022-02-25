@@ -41,6 +41,7 @@ cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(
   cairo_set_line_width(cr, kTrajectoryWidth);
 
   // Keep track of the current position of the sensor/robot
+  int last_traj = 0;
   double px_curr = 0;
   double py_curr = 0;
 
@@ -49,8 +50,10 @@ cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(
     cartographer::io::FloatColor color = GetColor(trajectory_id);
     cairo_set_source_rgba(cr, color[0], color[1], color[2], kAlpha);
     cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+    last_traj = trajectory_id;
 
     for (const auto& node : trajectory_nodes.trajectory(trajectory_id)) {
+      
       const auto t_global_pose = node.data.global_pose;
       const Eigen::Vector3d pixel = t_global_pose.translation();
       double px =  (slice_pose.translation().y() - pixel.y())/resolution;
@@ -61,17 +64,47 @@ cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(
       py_curr = py;
 
       cairo_line_to(cr, px, py);
+
     }
     cairo_stroke(cr);
 
-    // Draw origin point for each trajectory
-    double origin_x =  slice_pose.translation().y()/resolution;
-    double origin_y = slice_pose.translation().x()/resolution;
-
-    cairo_arc(cr, origin_x, origin_y, kTrajectoryEndMarkers, 0, 2 * M_PI);
-    cairo_fill(cr);
   }
+
+  // Draw start point for most recent trajectory
+  bool print_first = true;
+  for (const auto& node : trajectory_nodes.trajectory(last_traj)) {
+    if (print_first) {
+        auto t_global_pose = node.data.global_pose;
+      const Eigen::Vector3d pixel = t_global_pose.translation();
+      double px_start =  (slice_pose.translation().y() - pixel.y())/resolution;
+      double py_start = (slice_pose.translation().x() - pixel.x())/resolution;
+      cairo_arc(cr, px_start, py_start, kTrajectoryEndMarkers, 0, 2 * M_PI);
+      cairo_fill(cr); 
+      print_first = false;   
+    }
+  }
+
+  // std::cout << node.second << std::endl;
+  // std::cout << node.data << std::endl;
+  // auto t_global_pose = node.data.global_pose;
+  // const Eigen::Vector3d pixel = t_global_pose.translation();
+  // double px_start =  (slice_pose.translation().y() - pixel.y())/resolution;
+  // double py_start = (slice_pose.translation().x() - pixel.x())/resolution;
+  // cairo_arc(cr, px_start, py_start, kTrajectoryEndMarkers, 0, 2 * M_PI);
+  // cairo_fill(cr);
+
+ // cairo_set_source_rgba(cr, 1.0, 0.0, 0.0, 1.0);
+
+  // Draw end point for most recent trajectory
   cairo_arc(cr, px_curr, py_curr, kTrajectoryEndMarkers, 0, 2 * M_PI);
+  cairo_fill(cr);
+
+  // Draw origin point for submap
+  double origin_x =  slice_pose.translation().y()/resolution;
+  double origin_y = slice_pose.translation().x()/resolution;
+
+  cairo_set_source_rgba(cr, 1.0, 0.0, 0.0, 0.5);
+  cairo_arc(cr, origin_x, origin_y, kTrajectoryEndMarkers, 0, 2 * M_PI);
   cairo_fill(cr);
 
   return cartographer::io::MakeUniqueCairoSurfacePtr(cairo_get_target(cr));
