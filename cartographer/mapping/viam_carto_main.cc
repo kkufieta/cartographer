@@ -24,18 +24,25 @@ DEFINE_string(configuration_mapping_basename, "",
 DEFINE_string(configuration_localization_basename, "",
               "Basename, i.e. not containing any directory prefix, of the "
               "localization configuration file.");
+DEFINE_string(configuration_update_basename, "",
+              "Basename, i.e. not containing any directory prefix, of the "
+              "update map configuration file.");
 DEFINE_string(mapping_data_directory, "",
               "Directory in which rplidar data for mapping is expected.");
 DEFINE_string(localization_data_directory, "",
               "Directory in which rplidar data for localization is expected.");
+DEFINE_string(update_data_directory, "",
+              "Directory in which rplidar data for updating an a-priori map is expected.");
 DEFINE_string(output_directory, "",
               "Directory where map images are saved in.");
 DEFINE_string(map_output_name, "",
               "Name of the file where we're saving the generated map.");
 DEFINE_bool(mapping, false,
-              "Name of the file where we're saving the generated map.");
+              "Boolean that indicates whether or not we want to create a map.");
 DEFINE_bool(localization, false,
-              "Name of the file where we're saving the generated map.");
+              "Boolean that indicates whether or not we want to perform localization.");
+DEFINE_bool(update, false,
+              "Boolean that indicates whether or not we want to update an a-priori map with new data.");
 DEFINE_int64(picture_print_interval, 1e8,
               "Frequency at which we want to print pictures while cartographer is running.");
 
@@ -162,7 +169,16 @@ void LoadMapAndRun(const std::string& mode,
         const std::string& configuration_directory,
         const std::string& configuration_basename,
         const std::string& map_output_name,
-        int picture_print_interval) {
+        int picture_print_interval,
+        const std::string& operation) {
+
+  bool load_frozen_trajectory = true;
+  if (operation.compare("update") != 0 && operation.compare("localization") != 0) {
+    std::cerr << "Operation is not valid: " << operation << std::endl;
+    return;
+  } else if (operation == "update") {
+    load_frozen_trajectory = false;
+  }
 
   MapBuilderViam mapBuilderViam;
 
@@ -174,17 +190,12 @@ void LoadMapAndRun(const std::string& mode,
 
   // ASSUMPTION: Loaded trajectory has trajectory_id == 0
   const std::string map_file = "./" + map_output_name;
-  std::map<int, int> mapping_of_trajectory_ids = mapBuilderViam.map_builder_->LoadStateFromFile(map_file, true);
+  std::map<int, int> mapping_of_trajectory_ids = mapBuilderViam.map_builder_->LoadStateFromFile(map_file, load_frozen_trajectory);
   mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
   for(std::map<int, int>::const_iterator it = mapping_of_trajectory_ids.begin(); it != mapping_of_trajectory_ids.end(); ++it)
   {
       std::cout << "Trajectory ids mapping: " << it->first << " " << it->second << "\n";
   }
-
-  // auto* options =
-  //     mapBuilderViam.trajectory_builder_options_.mutable_pure_localization_trimmer();
-  // options->set_max_submaps_to_keep(3);
-  // mapBuilderViam.trajectory_builder_options_.set_pure_localization(true);
 
   // Build TrajectoryBuilder
   int trajectory_id = mapBuilderViam.map_builder_->AddTrajectoryBuilder(
@@ -200,7 +211,7 @@ void LoadMapAndRun(const std::string& mode,
   std::string initial_file = file_list[0];
 
   std::cout << "Beginning to add data....\n";
-  PaintMap(mapBuilderViam.map_builder_, output_directory, "before_localization");
+  PaintMap(mapBuilderViam.map_builder_, output_directory, "before_" + operation);
   
   for (int i = 500; i < int(file_list.size()); i++ ) {
     auto measurement = mapBuilderViam.GenerateSavedRangeMeasurements(data_directory, initial_file, i);
@@ -208,20 +219,20 @@ void LoadMapAndRun(const std::string& mode,
     if (measurement.ranges.size() > 0) {
         trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);
         if (i < 3 || i % picture_print_interval == 0) {
-          PaintMap(mapBuilderViam.map_builder_, output_directory, "localization_" + std::to_string(1 + i++));
+          PaintMap(mapBuilderViam.map_builder_, output_directory, operation + "_" + std::to_string(1 + i++));
         }
     }
   }
 
   // saved map after localization is finished
-  const std::string map_file_2 = "./" + map_output_name + "after_localization";
+  const std::string map_file_2 = "./" + map_output_name + "after_" + operation;
   mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
   mapBuilderViam.map_builder_->SerializeStateToFile(true, map_file_2);
 
   mapBuilderViam.map_builder_->FinishTrajectory(0);
   mapBuilderViam.map_builder_->FinishTrajectory(trajectory_id);
   mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
-  PaintMap(mapBuilderViam.map_builder_, output_directory, "after_localization_optimization");
+  PaintMap(mapBuilderViam.map_builder_, output_directory, "after_" + operation + "_optimization");
 
   return;
 }
@@ -230,7 +241,8 @@ void DrawSavedMap(const std::string& mode,
         const std::string& output_directory,
         const std::string& configuration_directory,
         const std::string& configuration_basename,
-        const std::string& map_output_name) {
+        const std::string& map_output_name,
+        const std::string& operation) {
 
   MapBuilderViam mapBuilderViam;
 
@@ -239,7 +251,7 @@ void DrawSavedMap(const std::string& mode,
 
   // Build MapBuilder
   mapBuilderViam.BuildMapBuilder();
-  const std::string map_file = "./" + map_output_name + "after_localization";
+  const std::string map_file = "./" + map_output_name + "after_" + operation;
   std::map<int, int> mapping_of_trajectory_ids = mapBuilderViam.map_builder_->LoadStateFromFile(map_file, true);
   mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
   for(std::map<int, int>::const_iterator it = mapping_of_trajectory_ids.begin(); it != mapping_of_trajectory_ids.end(); ++it)
@@ -247,11 +259,11 @@ void DrawSavedMap(const std::string& mode,
       std::cout << "Trajectory ids mapping: " << it->first << " " << it->second << "\n";
   }
 
-  PaintMap(mapBuilderViam.map_builder_, output_directory, map_output_name + "_saved_map_after_localization");
+  PaintMap(mapBuilderViam.map_builder_, output_directory, map_output_name + "_saved_map_after_" + operation);
 
   mapBuilderViam.map_builder_->FinishTrajectory(0);
   mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
-  PaintMap(mapBuilderViam.map_builder_, output_directory, "optimized_" +  map_output_name + "_saved_map_after_localization");
+  PaintMap(mapBuilderViam.map_builder_, output_directory, "optimized_" +  map_output_name + "_saved_map_after_" + operation);
 
   return;
 }
@@ -270,17 +282,23 @@ int main(int argc, char** argv) {
   if (FLAGS_configuration_directory.empty()) {
     std::cout << "-configuration_directory is missing.\n";
     return EXIT_FAILURE;
+  } else if (FLAGS_configuration_mapping_basename.empty()) {
+    std::cout << "-configuration_mapping_basename is missing.\n";
+    return EXIT_FAILURE;
   } else if (FLAGS_configuration_localization_basename.empty()) {
     std::cout << "-configuration_localization_basename is missing.\n";
     return EXIT_FAILURE;
-  } else if (FLAGS_configuration_mapping_basename.empty()) {
-    std::cout << "-configuration_mapping_basename is missing.\n";
+  } else if (FLAGS_configuration_update_basename.empty()) {
+    std::cout << "-configuration_update_basename is missing.\n";
     return EXIT_FAILURE;
   } else if (FLAGS_mapping_data_directory.empty()) {
     std::cout << "-mapping_data_directory is missing.\n";
     return EXIT_FAILURE;
   } else if (FLAGS_localization_data_directory.empty()) {
     std::cout << "-localization_data_directory is missing.\n";
+    return EXIT_FAILURE;
+  } else if (FLAGS_update_data_directory.empty()) {
+    std::cout << "-update_data_directory is missing.\n";
     return EXIT_FAILURE;
   } else if (FLAGS_output_directory.empty()) {
     std::cout << "-output_directory is missing.\n";
@@ -312,18 +330,40 @@ int main(int argc, char** argv) {
       FLAGS_configuration_directory,
       FLAGS_configuration_localization_basename,
       FLAGS_map_output_name,
-      FLAGS_picture_print_interval);
+      FLAGS_picture_print_interval,
+      "localization");
 
     std::cout << "Drawing saved map!" << std::endl;
     cartographer::mapping::DrawSavedMap(mode,
       FLAGS_output_directory,
       FLAGS_configuration_directory,
       FLAGS_configuration_localization_basename,
-      FLAGS_map_output_name);
+      FLAGS_map_output_name,
+      "localization");
   }
 
-  if (FLAGS_localization == false && FLAGS_mapping == false) {
-    std::cout << "Not doing anything, both mapping & localization are turned off." << std::endl;
+  if (FLAGS_update == true) {
+    std::cout << "Updating Map!" << std::endl;
+    cartographer::mapping::LoadMapAndRun(mode,
+      FLAGS_update_data_directory,
+      FLAGS_output_directory,
+      FLAGS_configuration_directory,
+      FLAGS_configuration_update_basename,
+      FLAGS_map_output_name,
+      FLAGS_picture_print_interval,
+      "update");
+
+    std::cout << "Drawing saved map!" << std::endl;
+    cartographer::mapping::DrawSavedMap(mode,
+      FLAGS_output_directory,
+      FLAGS_configuration_directory,
+      FLAGS_configuration_update_basename,
+      FLAGS_map_output_name,
+      "update");
+  }
+
+  if (FLAGS_localization == false && FLAGS_mapping == false && FLAGS_update == false) {
+    std::cout << "Not doing anything, mapping, localization, & updating maps are turned off." << std::endl;
   }
 
   return 1;
