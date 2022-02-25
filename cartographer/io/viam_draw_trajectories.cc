@@ -34,12 +34,13 @@ cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(
     return cartographer::io::MakeUniqueCairoSurfacePtr(cairo_get_target(cr));
   }
 
-  double kTrajectoryWidth = .75;
+  double kTrajectoryWidth = 1.;
   double kTrajectoryEndMarkers = 4;
   constexpr double kAlpha = 1.;
 
   cairo_set_line_width(cr, kTrajectoryWidth);
 
+  // Keep track of the current position of the sensor/robot
   double px_curr = 0;
   double py_curr = 0;
 
@@ -47,14 +48,15 @@ cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(
   for (const int trajectory_id : trajectory_nodes.trajectory_ids()) {
     cartographer::io::FloatColor color = GetColor(trajectory_id);
     cairo_set_source_rgba(cr, color[0], color[1], color[2], kAlpha);
+    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
 
     for (const auto& node : trajectory_nodes.trajectory(trajectory_id)) {
       const auto t_global_pose = node.data.global_pose;
       const Eigen::Vector3d pixel = t_global_pose.translation();
-
       double px =  (slice_pose.translation().y() - pixel.y())/resolution;
       double py = (slice_pose.translation().x() - pixel.x())/resolution;
 
+      // Keep track of the current position of the sensor/robot
       px_curr = px;
       py_curr = py;
 
@@ -68,8 +70,6 @@ cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(
 
     cairo_arc(cr, origin_x, origin_y, kTrajectoryEndMarkers, 0, 2 * M_PI);
     cairo_fill(cr);
-
-    
   }
   cairo_arc(cr, px_curr, py_curr, kTrajectoryEndMarkers, 0, 2 * M_PI);
   cairo_fill(cr);
