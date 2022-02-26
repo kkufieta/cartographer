@@ -4,21 +4,25 @@ set -o verbose
 
 
 # ---- Edit based on your needs:
-DATE="02242022"
+DATE="02252022"
 
-MAPPING="false"
-LOCALIZATION="false"
+MAPPING="true"
+LOCALIZATION="true"
 UPDATE="true"
 
-MAPPING_DATA_DIRECTORY="$HOME/rplidar/data_large"
-LOCALIZATION_DATA_DIRECTORY="$HOME/rplidar/data_small"
-# UPDATE_DATA_DIRECTORY="$HOME/rplidar/data_hexa_022422"
-UPDATE_DATA_DIRECTORY="$HOME/rplidar/data_printer_room"
+MAPPING_DATA_DIRECTORY="$HOME/rplidar/data_Feb_11_2022_small"
+LOCALIZATION_DATA_DIRECTORY="$HOME/rplidar/data_Feb_11_2022_large"
+UPDATE_DATA_DIRECTORY="$HOME/rplidar/data_Feb_24_2022_printer_room"
 
-OUTPUT_DIRECTORY="pics_${DATE}_new_data_hexa"
-MAP_OUTPUT_NAME="map_${DATE}.pbstream"
+DESCRIPTION="_take_1"
+OUTPUT_DIRECTORY="pics${DESCRIPTION}_${DATE}"
+MAP_OUTPUT_NAME="map${DESCRIPTION}_${DATE}.pbstream"
 
-PICTURE_PRINT_INTERVAL="300"
+PICTURE_PRINT_INTERVAL="50"
+
+MAPPING_STARTING_SCAN_NUMBER="0"
+LOCALIZATION_STARTING_SCAN_NUMBER="1000"
+UPDATE_STARTING_SCAN_NUMBER="0"
 # ----
 
 CONFIGURATION_DIRECTORY="../configuration_files"
@@ -29,6 +33,11 @@ CONFIGURATION_UPDATE_BASENAME="viam_update_map.lua"
 cd build
 rm -rf ${OUTPUT_DIRECTORY}
 mkdir ${OUTPUT_DIRECTORY}
+rm -rf pics_localization_map_visualization
+mkdir pics_localization_map_visualization
+rm -rf pics_update_map_visualization
+mkdir pics_update_map_visualization
+
 ./viam_carto_main  \
     -configuration_directory=${CONFIGURATION_DIRECTORY}  \
     -configuration_mapping_basename=${CONFIGURATION_MAPPING_BASENAME}  \
@@ -42,4 +51,7 @@ mkdir ${OUTPUT_DIRECTORY}
     -update_data_directory=${UPDATE_DATA_DIRECTORY} \
     -output_directory=${OUTPUT_DIRECTORY} \
     -map_output_name=${MAP_OUTPUT_NAME} \
-    -picture_print_interval=${PICTURE_PRINT_INTERVAL}
+    -picture_print_interval=${PICTURE_PRINT_INTERVAL} \
+    -mapping_starting_scan_number=${MAPPING_STARTING_SCAN_NUMBER} \
+    -localization_starting_scan_number=${LOCALIZATION_STARTING_SCAN_NUMBER} \
+    -update_starting_scan_number=${UPDATE_STARTING_SCAN_NUMBER}

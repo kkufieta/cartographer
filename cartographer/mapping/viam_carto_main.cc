@@ -43,6 +43,12 @@ DEFINE_bool(localization, false,
               "Boolean that indicates whether or not we want to perform localization.");
 DEFINE_bool(update, false,
               "Boolean that indicates whether or not we want to update an a-priori map with new data.");
+DEFINE_int64(mapping_starting_scan_number, 0,
+              "Scan index at which we want to start using the scans for mapping.");
+DEFINE_int64(localization_starting_scan_number, 0,
+              "Scan index at which we want to start using the scans for localization.");
+DEFINE_int64(update_starting_scan_number, 0,
+              "Scan index at which we want to start using the scans for updating the map.");
 DEFINE_int64(picture_print_interval, 1e8,
               "Frequency at which we want to print pictures while cartographer is running.");
 
@@ -114,6 +120,7 @@ void CreateMap(const std::string& mode,
               const std::string& configuration_directory,
               const std::string& configuration_basename,
               const std::string& map_output_name,
+              int starting_scan_number,
               int picture_print_interval) {
 
   MapBuilderViam mapBuilderViam;
@@ -137,15 +144,20 @@ void CreateMap(const std::string& mode,
   std::vector<std::string> file_list = read_file.listFilesInDirectory(data_directory);
   std::string initial_file = file_list[0];
 
+  if (starting_scan_number < 0 || starting_scan_number >= int(file_list.size())) {
+    std::cerr << "starting_scan_number is out of bounds: " << starting_scan_number << std::endl;
+    return;
+  }
+
   std::cout << "Beginning to add data....\n";
   
-  for (int i = 0; i < int(file_list.size()); i++ ) {
+  for (int i = starting_scan_number; i < 3520 && i < int(file_list.size()); i++ ) {
     auto measurement = mapBuilderViam.GenerateSavedRangeMeasurements(data_directory, initial_file, i);
 
     if (measurement.ranges.size() > 0) {
         trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);
         auto num_nodes = mapBuilderViam.map_builder_->pose_graph()->GetTrajectoryNodes().size();
-        if (num_nodes < 3 || num_nodes % picture_print_interval == 0) {
+        if ((num_nodes >= starting_scan_number && num_nodes < starting_scan_number + 3) || num_nodes % picture_print_interval == 0) {
           PaintMap(mapBuilderViam.map_builder_, output_directory, std::to_string(num_nodes));
         }
     }
@@ -169,6 +181,7 @@ void LoadMapAndRun(const std::string& mode,
         const std::string& configuration_directory,
         const std::string& configuration_basename,
         const std::string& map_output_name,
+        int starting_scan_number,
         int picture_print_interval,
         const std::string& operation) {
 
@@ -179,7 +192,6 @@ void LoadMapAndRun(const std::string& mode,
   } else if (operation == "update") {
     load_frozen_trajectory = false;
   }
-
   MapBuilderViam mapBuilderViam;
 
   // Add configs
@@ -210,22 +222,27 @@ void LoadMapAndRun(const std::string& mode,
   std::vector<std::string> file_list = read_file.listFilesInDirectory(data_directory);
   std::string initial_file = file_list[0];
 
+  if (starting_scan_number < 0 || starting_scan_number >= int(file_list.size())) {
+    std::cerr << "starting_scan_number is out of bounds: " << starting_scan_number << std::endl;
+    return;
+  }
+
   std::cout << "Beginning to add data....\n";
   PaintMap(mapBuilderViam.map_builder_, output_directory, "before_" + operation);
   
-  for (int i = 500; i < int(file_list.size()); i++ ) {
+  for (int i = starting_scan_number; i < int(file_list.size()); i++ ) {
     auto measurement = mapBuilderViam.GenerateSavedRangeMeasurements(data_directory, initial_file, i);
 
     if (measurement.ranges.size() > 0) {
         trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);
-        if (i < 3 || i % picture_print_interval == 0) {
+        if ((i >= starting_scan_number && i < starting_scan_number + 3) || i % picture_print_interval == 0) {
           PaintMap(mapBuilderViam.map_builder_, output_directory, operation + "_" + std::to_string(1 + i++));
         }
     }
   }
 
   // saved map after localization is finished
-  const std::string map_file_2 = "./" + map_output_name + "after_" + operation;
+  const std::string map_file_2 = "./after_" + operation + "_" + map_output_name;
   mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
   mapBuilderViam.map_builder_->SerializeStateToFile(true, map_file_2);
 
@@ -251,7 +268,7 @@ void DrawSavedMap(const std::string& mode,
 
   // Build MapBuilder
   mapBuilderViam.BuildMapBuilder();
-  const std::string map_file = "./" + map_output_name + "after_" + operation;
+  const std::string map_file = "./after_" + operation + "_" + map_output_name;
   std::map<int, int> mapping_of_trajectory_ids = mapBuilderViam.map_builder_->LoadStateFromFile(map_file, true);
   mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
   for(std::map<int, int>::const_iterator it = mapping_of_trajectory_ids.begin(); it != mapping_of_trajectory_ids.end(); ++it)
@@ -276,6 +293,7 @@ void DrawSavedMap(const std::string& mode,
 // .run_cart_main.sh
 int main(int argc, char** argv) {
   google::InitGoogleLogging("XXX");
+  std::string mode = "DON'T USE RIGHT NOW!!!!!!!";
   google::ParseCommandLineFlags(&argc, &argv, true);
   FLAGS_logtostderr = false;
 
@@ -310,7 +328,6 @@ int main(int argc, char** argv) {
 
   google::SetCommandLineOption("GLOG_minloglevel", "2");
 
-  std::string mode = "DON'T USE RIGHT NOW!!!!!!!";
   if (FLAGS_mapping == true) {
     std::cout << "Mapping!" << std::endl;
     cartographer::mapping::CreateMap(mode,
@@ -319,10 +336,21 @@ int main(int argc, char** argv) {
       FLAGS_configuration_directory,
       FLAGS_configuration_mapping_basename,
       FLAGS_map_output_name,
+      FLAGS_mapping_starting_scan_number,
       FLAGS_picture_print_interval);
   }
 
   if (FLAGS_localization == true) {
+    std::cout << "Creating a quick visualization of the localization map" << std::endl;
+    cartographer::mapping::CreateMap(mode,
+      FLAGS_localization_data_directory,
+      "pics_localization_map_visualization",
+      FLAGS_configuration_directory,
+      FLAGS_configuration_mapping_basename,
+      "map_localization_unused.pbstream",
+      FLAGS_localization_starting_scan_number,
+      200);
+
     std::cout << "Localizing!" << std::endl;
     cartographer::mapping::LoadMapAndRun(mode,
       FLAGS_localization_data_directory,
@@ -330,6 +358,7 @@ int main(int argc, char** argv) {
       FLAGS_configuration_directory,
       FLAGS_configuration_localization_basename,
       FLAGS_map_output_name,
+      FLAGS_localization_starting_scan_number,
       FLAGS_picture_print_interval,
       "localization");
 
@@ -343,6 +372,16 @@ int main(int argc, char** argv) {
   }
 
   if (FLAGS_update == true) {
+    std::cout << "Creating a quick visualization of the updating map" << std::endl;
+    cartographer::mapping::CreateMap(mode,
+      FLAGS_update_data_directory,
+      "pics_update_map_visualization",
+      FLAGS_configuration_directory,
+      FLAGS_configuration_mapping_basename,
+      "map_update_unused.pbstream",
+      FLAGS_update_starting_scan_number,
+      200);
+
     std::cout << "Updating Map!" << std::endl;
     cartographer::mapping::LoadMapAndRun(mode,
       FLAGS_update_data_directory,
@@ -350,6 +389,7 @@ int main(int argc, char** argv) {
       FLAGS_configuration_directory,
       FLAGS_configuration_update_basename,
       FLAGS_map_output_name,
+      FLAGS_update_starting_scan_number,
       FLAGS_picture_print_interval,
       "update");
 

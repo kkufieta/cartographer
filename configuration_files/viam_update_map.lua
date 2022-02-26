@@ -23,7 +23,7 @@ TRAJECTORY_BUILDER.trajectory_builder_2d.use_imu_data = false
 TRAJECTORY_BUILDER.trajectory_builder_2d.use_online_correlative_scan_matching = true
 TRAJECTORY_BUILDER.trajectory_builder_2d.min_range = 0.2
 TRAJECTORY_BUILDER.trajectory_builder_2d.max_range = 25.
-TRAJECTORY_BUILDER.trajectory_builder_2d.missing_data_ray_length = 25
+TRAJECTORY_BUILDER.trajectory_builder_2d.missing_data_ray_length = 25 -- DO NOT CHANGE
 
 -- tuneable:
 TRAJECTORY_BUILDER.trajectory_builder_2d.submaps.num_range_data = 100
@@ -33,7 +33,7 @@ TRAJECTORY_BUILDER.trajectory_builder_2d.submaps.num_range_data = 100
 MAP_BUILDER.pose_graph.optimize_every_n_nodes = 3
 MAP_BUILDER.pose_graph.overlapping_submaps_trimmer_2d = {
   fresh_submaps_count = 3,
-  min_covered_area = 2.0,
+  min_covered_area = 1.0,
   min_added_submaps_count = 1
 }
 
