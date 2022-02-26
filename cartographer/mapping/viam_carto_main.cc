@@ -230,7 +230,7 @@ void LoadMapAndRun(const std::string& mode,
   std::cout << "Beginning to add data....\n";
   PaintMap(mapBuilderViam.map_builder_, output_directory, "before_" + operation);
   
-  for (int i = starting_scan_number; i < int(file_list.size()); i++ ) {
+  for (int i = starting_scan_number; i < 3520 && i < int(file_list.size()); i++ ) {
     auto measurement = mapBuilderViam.GenerateSavedRangeMeasurements(data_directory, initial_file, i);
 
     if (measurement.ranges.size() > 0) {
