@@ -51,6 +51,8 @@ class MapBuilderViam {
   
   cartographer::sensor::TimedPointCloudData GetDataFromFile(std::string data_directory, std::string initial_filename, int i);
 
+  void SetConfigParameters(std::string map_input_name, std::string map_output_name, std::map<std::string, float> config_dict);
+
 
   std::unique_ptr<MapBuilderInterface> map_builder_;
   proto::MapBuilderOptions map_builder_options_;

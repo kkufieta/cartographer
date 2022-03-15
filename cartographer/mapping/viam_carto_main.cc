@@ -2,6 +2,7 @@
 #include "cartographer/mapping/map_builder.h"
 #include "cartographer/metrics/register.h"
 #include <string>
+#include <map>
 
 #include "cartographer/io/submap_painter.h"
 #include "cartographer/io/image.h"
@@ -172,7 +173,8 @@ void LoadMapAndRun(const std::string& mode,
         const std::string& configuration_basename,
         const std::string& map_input_name,
         const std::string& map_output_name,
-        int picture_print_interval) {
+        int picture_print_interval,
+        std::map<std::string, float> config_dict) {
 
   bool load_frozen_trajectory = true;
   if (map_output_name == "") {
@@ -186,16 +188,15 @@ void LoadMapAndRun(const std::string& mode,
 
   std::string operation = "mapping";
   if (map_input_name != "") {
-    mapBuilderViam.trajectory_builder_options_.mutable_pure_localization_trimmer()->set_max_submaps_to_keep(4);
     operation = "localizing";
   }
 
   if (map_input_name != "" && map_output_name != "") {
-    mapBuilderViam.map_builder_options_.mutable_pose_graph_options()->mutable_overlapping_submaps_trimmer_2d()->set_fresh_submaps_count(3);
-    mapBuilderViam.map_builder_options_.mutable_pose_graph_options()->mutable_overlapping_submaps_trimmer_2d()->set_min_covered_area(2.0);
-    mapBuilderViam.map_builder_options_.mutable_pose_graph_options()->mutable_overlapping_submaps_trimmer_2d()->set_min_added_submaps_count(1);
     operation = "updating";  
   }
+
+  mapBuilderViam.SetConfigParameters(map_input_name, map_output_name, config_dict);
+
 
   // Add configs
   mapBuilderViam.SetUp(configuration_directory, configuration_basename);
@@ -205,7 +206,7 @@ void LoadMapAndRun(const std::string& mode,
 
   // ASSUMPTION: Loaded trajectory has trajectory_id == 0
   if (map_input_name != "") {
-    const std::string map_file = "./" + map_output_name;
+    const std::string map_file = "./" + map_input_name;
     std::map<int, int> mapping_of_trajectory_ids = mapBuilderViam.map_builder_->LoadStateFromFile(map_file, load_frozen_trajectory);
     mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
     for(std::map<int, int>::const_iterator it = mapping_of_trajectory_ids.begin(); it != mapping_of_trajectory_ids.end(); ++it)
@@ -241,10 +242,10 @@ void LoadMapAndRun(const std::string& mode,
   }
 
   // saved map after localization is finished
-  const std::string map_file_2 = "./" + map_output_name + "after_" + operation;
+  const std::string map_file_2 = "./" + map_output_name;
   mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
 
-  if (map_input_name != "") {
+  if (map_output_name != "") {
     mapBuilderViam.map_builder_->SerializeStateToFile(true, map_file_2);
   }
 
@@ -281,7 +282,7 @@ void DrawSavedMap(const std::string& mode,
 
   // Build MapBuilder
   mapBuilderViam.BuildMapBuilder();
-  const std::string map_file = "./" + map_output_name + "after_" + operation;
+  const std::string map_file = "./" + map_output_name;
   std::map<int, int> mapping_of_trajectory_ids = mapBuilderViam.map_builder_->LoadStateFromFile(map_file, true);
   mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
   for(std::map<int, int>::const_iterator it = mapping_of_trajectory_ids.begin(); it != mapping_of_trajectory_ids.end(); ++it)
@@ -327,6 +328,11 @@ int main(int argc, char** argv) {
 
   std::string mode = "DON'T USE RIGHT NOW!!!!!!!";
 
+
+  std::map<std::string, float> config_parameter_dict = {
+   // {"optimize_every_n_nodes", 3}
+  };
+
   std::cout << "Localizing!" << std::endl;
   cartographer::mapping::LoadMapAndRun(mode,
     FLAGS_data_directory,
@@ -335,7 +341,8 @@ int main(int argc, char** argv) {
     FLAGS_configuration_basename,
     FLAGS_map_input_name,
     FLAGS_map_output_name,
-    FLAGS_picture_print_interval);
+    FLAGS_picture_print_interval,
+    config_parameter_dict);
 
   std::cout << "Drawing saved map!" << std::endl;
   cartographer::mapping::DrawSavedMap(mode,

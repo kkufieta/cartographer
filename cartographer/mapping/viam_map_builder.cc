@@ -119,6 +119,76 @@ MapBuilderInterface::LocalSlamResultCallback MapBuilderViam::GetLocalSlamResultC
     };
   }
 
+
+void MapBuilderViam::SetConfigParameters(std::string map_input_name, std::string map_output_name, std::map<std::string, float> config_dict) {
+
+
+  if (config_dict.size() == 0) {
+    std::cout << "No custom parameters specified, using defaults." << std::endl;
+  }
+  // Standard Parameters
+
+  if (config_dict["optimize_every_n_nodes"] != 0) {
+    map_builder_options_.mutable_pose_graph_options()->set_optimize_every_n_nodes(int(config_dict["optimize_every_n_nodes"]));
+  }
+  if (config_dict["num_range_data"] != 0) {
+    trajectory_builder_options_.mutable_trajectory_builder_2d_options()->mutable_submaps_options()->set_num_range_data(int(config_dict["num_range_data"]));
+  }
+  if (config_dict["missing_data_ray_length"] != 0) {
+    trajectory_builder_options_.mutable_trajectory_builder_2d_options()->set_missing_data_ray_length(config_dict["missing_data_ray_length"]);
+  }
+  if (config_dict["max_range"] != 0) {
+    trajectory_builder_options_.mutable_trajectory_builder_2d_options()->set_max_range(config_dict["max_range"]);
+  }
+  if (config_dict["min_range"] != 0) {
+    trajectory_builder_options_.mutable_trajectory_builder_2d_options()->set_min_range(config_dict["min_range"]);
+  }
+
+  // Input & Ouput Specific Parameters
+  if (map_input_name != "") {
+    if (config_dict["max_submaps_to_keep"] != 0) {
+      trajectory_builder_options_.mutable_pure_localization_trimmer()->set_max_submaps_to_keep(int(config_dict["max_submaps_to_keep"]));
+    }
+  }
+
+  if (map_input_name != "" && map_output_name != "") {
+    if (config_dict["fresh_submaps_count"] != 0) {
+      map_builder_options_.mutable_pose_graph_options()->mutable_overlapping_submaps_trimmer_2d()->set_fresh_submaps_count(int(config_dict["fresh_submaps_count"]));
+    }
+    if (config_dict["min_covered_area"] != 0) {
+      map_builder_options_.mutable_pose_graph_options()->mutable_overlapping_submaps_trimmer_2d()->set_min_covered_area(config_dict["min_covered_area"]);
+    }
+    if (config_dict["min_added_submaps_count"] != 0) {
+      map_builder_options_.mutable_pose_graph_options()->mutable_overlapping_submaps_trimmer_2d()->set_min_added_submaps_count(config_dict["min_added_submaps_count"]);
+    }
+  }
+
+  // Advanced Parameters
+  if (config_dict["occupied_space_weight"] != 0) {
+    trajectory_builder_options_.mutable_trajectory_builder_2d_options()->mutable_ceres_scan_matcher_options()->set_occupied_space_weight(config_dict["occupied_space_weight"]);
+  }
+  if (config_dict["translation_weight"] != 0) {
+    trajectory_builder_options_.mutable_trajectory_builder_2d_options()->mutable_ceres_scan_matcher_options()->set_translation_weight(config_dict["translation_weight"]);
+  }
+  if (config_dict["rotation_weight"] != 0) {
+    trajectory_builder_options_.mutable_trajectory_builder_2d_options()->mutable_ceres_scan_matcher_options()->set_rotation_weight(config_dict["rotation_weight"]);
+  }
+  if (config_dict["inear_search_window"] != 0) {
+    trajectory_builder_options_.mutable_trajectory_builder_2d_options()->mutable_real_time_correlative_scan_matcher_options()->set_linear_search_window(config_dict["inear_search_window"]);
+  }
+  if (config_dict["angular_search_window"] != 0) {
+    trajectory_builder_options_.mutable_trajectory_builder_2d_options()->mutable_real_time_correlative_scan_matcher_options()->set_angular_search_window(config_dict["angular_search_window"]);
+  }
+}
+
+
+
+
+
+
+
+
+
 cartographer::sensor::TimedPointCloudData MapBuilderViam::GenerateSavedRangeMeasurements(std::string data_directory, std::string initial_filename, int i) {
     return GenerateSaved2DRangeMeasurements(initial_filename, i, data_directory);
   }
@@ -132,6 +202,8 @@ cartographer::sensor::TimedPointCloudData MapBuilderViam::GenerateSaved2DRangeMe
     LOG(INFO) << "Range start (time): " << point_cloud_data.ranges[0].time;
     LOG(INFO) << "Range end (time): " << (point_cloud_data.ranges.back()).time;
     LOG(INFO) << "-----------------\n";
+
+    // CropPointCloud
 
     return point_cloud_data;
   }
