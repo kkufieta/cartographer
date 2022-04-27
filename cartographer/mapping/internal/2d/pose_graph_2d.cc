@@ -128,6 +128,7 @@ NodeId PoseGraph2D::AppendNode(
     const int trajectory_id,
     const std::vector<std::shared_ptr<const Submap2D>>& insertion_submaps,
     const transform::Rigid3d& optimized_pose) {
+
   absl::MutexLock locker(&mutex_);
   AddTrajectoryIfNeeded(trajectory_id);
   if (!CanAddWorkItemModifying(trajectory_id)) {
