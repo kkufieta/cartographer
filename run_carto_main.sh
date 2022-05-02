@@ -26,12 +26,13 @@ LOCALIZATION_STARTING_SCAN_NUMBER="0"
 UPDATE_STARTING_SCAN_NUMBER="0"
 # ----
 
-CONFIGURATION_DIRECTORY="../viam_carto_config_files"
+CONFIGURATION_DIRECTORY="../lua_files"
 CONFIGURATION_MAPPING_BASENAME="mapping_new_map.lua"
 CONFIGURATION_LOCALIZATION_BASENAME="locating_in_map.lua"
 CONFIGURATION_UPDATE_BASENAME="updating_a_map.lua"
 
-cd build
+mkdir -p viam/output
+cd viam/output
 rm -rf ${OUTPUT_DIRECTORY}
 mkdir ${OUTPUT_DIRECTORY}
 rm -rf pics_localization_map_visualization
@@ -39,7 +40,7 @@ mkdir pics_localization_map_visualization
 rm -rf pics_update_map_visualization
 mkdir pics_update_map_visualization
 
-./viam_carto_main  \
+../build/main  \
     -configuration_directory=${CONFIGURATION_DIRECTORY}  \
     -configuration_mapping_basename=${CONFIGURATION_MAPPING_BASENAME}  \
     -configuration_localization_basename=${CONFIGURATION_LOCALIZATION_BASENAME}  \
