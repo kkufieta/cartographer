@@ -21,5 +21,3 @@ MAP_BUILDER = {
   pose_graph = POSE_GRAPH,
   collate_by_trajectory = false,
 }
-
-return MAP_BUILDER
