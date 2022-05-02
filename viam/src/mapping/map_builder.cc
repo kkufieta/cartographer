@@ -15,10 +15,8 @@
  */
 
 #include "cartographer/mapping/map_builder.h"
-#include "cartographer/mapping/viam_map_builder.h"
 #include "cartographer/common/config.h"
 #include "cartographer/io/proto_stream.h"
-#include "cartographer/io/viam_read_PCD_file.h"
 #include "cartographer/mapping/2d/grid_2d.h"
 #include "cartographer/mapping/internal/testing/test_helpers.h"
 #include "cartographer/mapping/internal/local_slam_result_data.h"
@@ -33,6 +31,9 @@
 #include "cartographer/mapping/map_builder_interface.h"
 #include "gtest/gtest.h"
 #include "glog/logging.h"
+
+#include "viam/src/io/read_PCD_file.h"
+#include "viam/src/mapping/map_builder.h"
 
 namespace cartographer {
 namespace mapping {

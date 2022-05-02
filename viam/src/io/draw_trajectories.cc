@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#include "cartographer/io/viam_draw_trajectories.h"
-
 #include "cartographer/io/image.h"
 #include "cartographer/transform/transform.h"
+
+#include "viam/src/io/draw_trajectories.h"
 
 namespace cartographer {
 namespace io {

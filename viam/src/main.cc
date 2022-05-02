@@ -1,4 +1,3 @@
-#include "cartographer/mapping/viam_map_builder.h"
 #include "cartographer/mapping/map_builder.h"
 #include "cartographer/metrics/register.h"
 #include <string>
@@ -11,7 +10,8 @@
 #include "cartographer/mapping/proto/trajectory.pb.h"
 #include "cartographer/mapping/proto/pose_graph.pb.h"
 
-#include "cartographer/io/viam_draw_trajectories.h"
+#include "viam/src/mapping/map_builder.h"
+#include "viam/src/io/draw_trajectories.h"
 
 
 DEFINE_string(configuration_directory, "",

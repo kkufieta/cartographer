@@ -4,10 +4,11 @@
 #include <fstream>  // std::ifstream
 #include <string>
 #include <boost/filesystem.hpp>
-#include "viam_read_PCD_file.h"
 #include <stdio.h>
 #include <ctime>
 #include "glog/logging.h"
+
+#include "viam/src/io/read_PCD_file.h"
 
 
 namespace cartographer {
