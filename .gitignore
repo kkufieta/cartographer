@@ -1,4 +1,5 @@
 build
 bazel-*
-# *.DS_Store
-# settings.json
+
+*.DS_Store
+.vscode
