@@ -37,7 +37,6 @@ constexpr double kTravelDistance = 1.2;  // Meters.
 
 template <class T>
 class MapBuilderTestBase : public T {
-
  protected:
   void SetUp() override {
     // Global SLAM optimization is not executed.
