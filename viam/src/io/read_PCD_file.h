@@ -1,5 +1,5 @@
-#ifndef CARTOGRAPHER_READ_FROM_FILE_H_
-#define CARTOGRAPHER_READ_FROM_FILE_H_
+#ifndef VIAM_READ_FROM_FILE_H_
+#define VIAM_READ_FROM_FILE_H_
 
 #include <chrono>
 #include <ostream>
@@ -8,19 +8,19 @@
 #include <string>
 #include "cartographer/sensor/timed_point_cloud_data.h"
 
-namespace cartographer {
+namespace viam {
 namespace io {
 
 
 class ReadFile {
  public:
- std::vector<std::string> listFilesInDirectory(std::string data_directory);
-  sensor::TimedPointCloudData timedPointCloudDataFromPCDBuilder(std::string file_path, std::string initial_filename);
+  std::vector<std::string> listFilesInDirectory(std::string data_directory);
+  cartographer::sensor::TimedPointCloudData timedPointCloudDataFromPCDBuilder(std::string file_path, std::string initial_filename);
   int removeFile(std::string);
 
 };
 
 }  // namespace io
-}  // namespace cartographer
+}  // namespace viam
 
-#endif  // CARTOGRAPHER_READ_LAS_FILE_H_
+#endif  // VIAM_READ_FROM_FILE_H_

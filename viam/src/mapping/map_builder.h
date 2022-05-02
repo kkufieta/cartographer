@@ -1,5 +1,5 @@
-#ifndef CARTOGRAPHER_MAP_BUILDER_VIAM_H_
-#define CARTOGRAPHER_MAP_BUILDER_VIAM_H_
+#ifndef VIAM_CARTOGRAPHER_MAP_BUILDER_H_
+#define VIAM_CARTOGRAPHER_MAP_BUILDER_H_
 
 
 #include "cartographer/mapping/map_builder.h"
@@ -24,11 +24,11 @@
 #include "cartographer/transform/transform.h"
 
 
-namespace cartographer {
+namespace viam {
 namespace mapping {
 
 
-class MapBuilderViam {
+class MapBuilder {
   public:
   void SetUp(std::string configuration_directory, std::string configuration_basename);
 
@@ -37,14 +37,14 @@ class MapBuilderViam {
   // ---- WARNING ----
   // DON'T USE THESE!!! Before these are actually useful, we would need to find out
   // how to tune them. And even then, they're only useful for specific platforms,
-  // since cartographer is HIGHLY sensitive to tuning parameters.
+  // since cartographer is HIGHLY sensitie to tuning parameters.
   // Use with extra care.
   void SetOptionsTo3D();
   void SetOptionsToTSDF2D();
   void SetOptionsEnableGlobalOptimization();
   // ---- END OF WARNING ----
 
-  MapBuilderInterface::LocalSlamResultCallback GetLocalSlamResultCallback();
+  cartographer::mapping::MapBuilderInterface::LocalSlamResultCallback GetLocalSlamResultCallback();
 
   cartographer::sensor::TimedPointCloudData GenerateSavedRangeMeasurements(std::string data_directory, std::string initial_filename, int i);
   cartographer::sensor::TimedPointCloudData GenerateSaved2DRangeMeasurements(std::string initial_filename, int i, std::string data_directory);
@@ -52,13 +52,13 @@ class MapBuilderViam {
   cartographer::sensor::TimedPointCloudData GetDataFromFile(std::string data_directory, std::string initial_filename, int i);
 
 
-  std::unique_ptr<MapBuilderInterface> map_builder_;
-  proto::MapBuilderOptions map_builder_options_;
-  proto::TrajectoryBuilderOptions trajectory_builder_options_;
+  std::unique_ptr<cartographer::mapping::MapBuilderInterface> map_builder_;
+  cartographer::mapping::proto::MapBuilderOptions map_builder_options_;
+  cartographer::mapping::proto::TrajectoryBuilderOptions trajectory_builder_options_;
   std::vector<::cartographer::transform::Rigid3d> local_slam_result_poses_;
 };
 
-}  // namespace io
-}  // namespace cartographer
+}  // namespace mapping
+}  // namespace viam
 
-#endif  // CARTOGRAPHER_READ_FROM_FILE_H_
+#endif  // VIAM_CARTOGRAPHER_MAP_BUILDER_H_

@@ -11,17 +11,17 @@
 #include "viam/src/io/read_PCD_file.h"
 
 
-namespace cartographer {
+namespace viam {
 namespace io {
 
 namespace fs = boost::filesystem;
 
-sensor::TimedPointCloudData ReadFile::timedPointCloudDataFromPCDBuilder (std::string file_path, std::string initial_filename){
+cartographer::sensor::TimedPointCloudData ReadFile::timedPointCloudDataFromPCDBuilder (std::string file_path, std::string initial_filename){
 
   pcl::console::setVerbosityLevel(pcl::console::L_ALWAYS);
 
-  sensor::TimedPointCloudData timedPCD;
-  sensor::TimedPointCloud ranges;
+  cartographer::sensor::TimedPointCloudData timedPCD;
+  cartographer::sensor::TimedPointCloud ranges;
   
   //Open the point cloud file
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -67,7 +67,7 @@ sensor::TimedPointCloudData ReadFile::timedPointCloudDataFromPCDBuilder (std::st
 
   for (size_t i = 0; i < cloud->points.size(); ++i) {
 
-    sensor::TimedRangefinderPoint TimedRP;
+    cartographer::sensor::TimedRangefinderPoint TimedRP;
     TimedRP.position = Eigen::Vector3f(cloud->points[i].x, cloud->points[i].y, cloud->points[i].z);
     TimedRP.time = 0 - i*0.0001;
     
@@ -104,4 +104,4 @@ int ReadFile::removeFile (std::string file_path)
 }
 
 }  // namespace io
-}  // namespace cartographer
+}  // namespace viam

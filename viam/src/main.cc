@@ -12,6 +12,7 @@
 
 #include "viam/src/mapping/map_builder.h"
 #include "viam/src/io/draw_trajectories.h"
+#include "viam/src/io/read_PCD_file.h"
 
 
 DEFINE_string(configuration_directory, "",
@@ -52,8 +53,7 @@ DEFINE_int64(update_starting_scan_number, 0,
 DEFINE_int64(picture_print_interval, 1e8,
               "Frequency at which we want to print pictures while cartographer is running.");
 
-namespace cartographer {
-namespace mapping {
+namespace viam {
 
 using SensorId = cartographer::mapping::TrajectoryBuilderInterface::SensorId;
 
@@ -101,7 +101,7 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
 
         if (submap_id_pose.id.submap_index == 0 && submap_id_pose.id.trajectory_id == 0) {
           const auto trajectory_nodes = map_builder_->pose_graph()->GetTrajectoryNodes();
-          submap_slice.surface = cartographer::io::DrawTrajectoryNodes(trajectory_nodes, submap_slice.resolution, submap_slice.slice_pose, 
+          submap_slice.surface = viam::io::DrawTrajectoryNodes(trajectory_nodes, submap_slice.resolution, submap_slice.slice_pose, 
                                               submap_slice.surface.get());
         }
       }
@@ -123,24 +123,24 @@ void CreateMap(const std::string& mode,
               int starting_scan_number,
               int picture_print_interval) {
 
-  MapBuilderViam mapBuilderViam;
+  mapping::MapBuilder mapBuilder;
 
   // Add configs
-  mapBuilderViam.SetUp(configuration_directory, configuration_basename);
+  mapBuilder.SetUp(configuration_directory, configuration_basename);
 
   // Build MapBuilder
-  mapBuilderViam.BuildMapBuilder();
+  mapBuilder.BuildMapBuilder();
 
   // Build TrajectoryBuilder
-  int trajectory_id = mapBuilderViam.map_builder_->AddTrajectoryBuilder(
-      {kRangeSensorId}, mapBuilderViam.trajectory_builder_options_,
-      mapBuilderViam.GetLocalSlamResultCallback());
+  int trajectory_id = mapBuilder.map_builder_->AddTrajectoryBuilder(
+      {kRangeSensorId}, mapBuilder.trajectory_builder_options_,
+      mapBuilder.GetLocalSlamResultCallback());
 
   LOG(INFO) << "Trajectory ID: " << trajectory_id;
 
-  TrajectoryBuilderInterface* trajectory_builder = mapBuilderViam.map_builder_->GetTrajectoryBuilder(trajectory_id);
+  cartographer::mapping::TrajectoryBuilderInterface* trajectory_builder = mapBuilder.map_builder_->GetTrajectoryBuilder(trajectory_id);
 
-  cartographer::io::ReadFile read_file;
+  viam::io::ReadFile read_file;
   std::vector<std::string> file_list = read_file.listFilesInDirectory(data_directory);
   std::string initial_file = file_list[0];
 
@@ -153,27 +153,27 @@ void CreateMap(const std::string& mode,
   
   int end_scan_number = int(file_list.size());
   for (int i = starting_scan_number; i < end_scan_number; i++ ) {
-    auto measurement = mapBuilderViam.GenerateSavedRangeMeasurements(data_directory, initial_file, i);
+    auto measurement = mapBuilder.GenerateSavedRangeMeasurements(data_directory, initial_file, i);
 
     if (measurement.ranges.size() > 0) {
         trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);
-        int num_nodes = mapBuilderViam.map_builder_->pose_graph()->GetTrajectoryNodes().size();
+        int num_nodes = mapBuilder.map_builder_->pose_graph()->GetTrajectoryNodes().size();
         if ((num_nodes >= starting_scan_number && num_nodes < starting_scan_number + 3) ||
              num_nodes % picture_print_interval == 0) {
           // std::cout << "(i, num_nodes) = (" << i << ", " << num_nodes << ")" << std::endl;
-          PaintMap(mapBuilderViam.map_builder_, output_directory, std::to_string(num_nodes));
+          PaintMap(mapBuilder.map_builder_, output_directory, std::to_string(num_nodes));
         }
     }
   }
 
   // Save the map in a pbstream file
   const std::string map_file = "./" + map_output_name;
-  mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
-  mapBuilderViam.map_builder_->SerializeStateToFile(true, map_file);
+  mapBuilder.map_builder_->pose_graph()->RunFinalOptimization();
+  mapBuilder.map_builder_->SerializeStateToFile(true, map_file);
 
-  mapBuilderViam.map_builder_->FinishTrajectory(trajectory_id);
-  mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
-  PaintMap(mapBuilderViam.map_builder_, output_directory, "0");
+  mapBuilder.map_builder_->FinishTrajectory(trajectory_id);
+  mapBuilder.map_builder_->pose_graph()->RunFinalOptimization();
+  PaintMap(mapBuilder.map_builder_, output_directory, "0");
   
   return;
 }
@@ -195,33 +195,33 @@ void LoadMapAndRun(const std::string& mode,
   } else if (operation == "update") {
     load_frozen_trajectory = false;
   }
-  MapBuilderViam mapBuilderViam;
+  mapping::MapBuilder mapBuilder;
 
   // Add configs
-  mapBuilderViam.SetUp(configuration_directory, configuration_basename);
+  mapBuilder.SetUp(configuration_directory, configuration_basename);
 
   // Build MapBuilder
-  mapBuilderViam.BuildMapBuilder();
+  mapBuilder.BuildMapBuilder();
 
   // ASSUMPTION: Loaded trajectory has trajectory_id == 0
   const std::string map_file = "./" + map_output_name;
-  std::map<int, int> mapping_of_trajectory_ids = mapBuilderViam.map_builder_->LoadStateFromFile(map_file, load_frozen_trajectory);
-  mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
+  std::map<int, int> mapping_of_trajectory_ids = mapBuilder.map_builder_->LoadStateFromFile(map_file, load_frozen_trajectory);
+  mapBuilder.map_builder_->pose_graph()->RunFinalOptimization();
   for(std::map<int, int>::const_iterator it = mapping_of_trajectory_ids.begin(); it != mapping_of_trajectory_ids.end(); ++it)
   {
       std::cout << "Trajectory ids mapping: " << it->first << " " << it->second << "\n";
   }
 
   // Build TrajectoryBuilder
-  int trajectory_id = mapBuilderViam.map_builder_->AddTrajectoryBuilder(
-      {kRangeSensorId}, mapBuilderViam.trajectory_builder_options_,
-      mapBuilderViam.GetLocalSlamResultCallback());
+  int trajectory_id = mapBuilder.map_builder_->AddTrajectoryBuilder(
+      {kRangeSensorId}, mapBuilder.trajectory_builder_options_,
+      mapBuilder.GetLocalSlamResultCallback());
 
   std::cout << "Trajectory ID: " << trajectory_id << "\n";
 
-  TrajectoryBuilderInterface* trajectory_builder = mapBuilderViam.map_builder_->GetTrajectoryBuilder(trajectory_id);
+  cartographer::mapping::TrajectoryBuilderInterface* trajectory_builder = mapBuilder.map_builder_->GetTrajectoryBuilder(trajectory_id);
 
-  cartographer::io::ReadFile read_file;
+  io::ReadFile read_file;
   std::vector<std::string> file_list = read_file.listFilesInDirectory(data_directory);
   std::string initial_file = file_list[0];
 
@@ -231,29 +231,29 @@ void LoadMapAndRun(const std::string& mode,
   }
 
   std::cout << "Beginning to add data....\n";
-  PaintMap(mapBuilderViam.map_builder_, output_directory, "before_" + operation);
+  PaintMap(mapBuilder.map_builder_, output_directory, "before_" + operation);
   
   int end_scan_number = int(file_list.size());
   for (int i = starting_scan_number; i < end_scan_number; i++ ) {
-    auto measurement = mapBuilderViam.GenerateSavedRangeMeasurements(data_directory, initial_file, i);
+    auto measurement = mapBuilder.GenerateSavedRangeMeasurements(data_directory, initial_file, i);
 
     if (measurement.ranges.size() > 0) {
         trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);
         if ((i >= starting_scan_number && i < starting_scan_number + 3) || i % picture_print_interval == 0) {
-          PaintMap(mapBuilderViam.map_builder_, output_directory, operation + "_" + std::to_string(1 + i++));
+          PaintMap(mapBuilder.map_builder_, output_directory, operation + "_" + std::to_string(1 + i++));
         }
     }
   }
 
   // saved map after localization is finished
   const std::string map_file_2 = "./after_" + operation + "_" + map_output_name;
-  mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
-  mapBuilderViam.map_builder_->SerializeStateToFile(true, map_file_2);
+  mapBuilder.map_builder_->pose_graph()->RunFinalOptimization();
+  mapBuilder.map_builder_->SerializeStateToFile(true, map_file_2);
 
-  mapBuilderViam.map_builder_->FinishTrajectory(0);
-  mapBuilderViam.map_builder_->FinishTrajectory(trajectory_id);
-  mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
-  PaintMap(mapBuilderViam.map_builder_, output_directory, "after_" + operation + "_optimization");
+  mapBuilder.map_builder_->FinishTrajectory(0);
+  mapBuilder.map_builder_->FinishTrajectory(trajectory_id);
+  mapBuilder.map_builder_->pose_graph()->RunFinalOptimization();
+  PaintMap(mapBuilder.map_builder_, output_directory, "after_" + operation + "_optimization");
 
   return;
 }
@@ -265,33 +265,31 @@ void DrawSavedMap(const std::string& mode,
         const std::string& map_output_name,
         const std::string& operation) {
 
-  MapBuilderViam mapBuilderViam;
+  mapping::MapBuilder mapBuilder;
 
   // Add configs
-  mapBuilderViam.SetUp(configuration_directory, configuration_basename);
+  mapBuilder.SetUp(configuration_directory, configuration_basename);
 
   // Build MapBuilder
-  mapBuilderViam.BuildMapBuilder();
+  mapBuilder.BuildMapBuilder();
   const std::string map_file = "./after_" + operation + "_" + map_output_name;
-  std::map<int, int> mapping_of_trajectory_ids = mapBuilderViam.map_builder_->LoadStateFromFile(map_file, true);
-  mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
+  std::map<int, int> mapping_of_trajectory_ids = mapBuilder.map_builder_->LoadStateFromFile(map_file, true);
+  mapBuilder.map_builder_->pose_graph()->RunFinalOptimization();
   for(std::map<int, int>::const_iterator it = mapping_of_trajectory_ids.begin(); it != mapping_of_trajectory_ids.end(); ++it)
   {
       std::cout << "Trajectory ids mapping: " << it->first << " " << it->second << "\n";
   }
 
-  PaintMap(mapBuilderViam.map_builder_, output_directory, map_output_name + "_saved_map_after_" + operation);
+  PaintMap(mapBuilder.map_builder_, output_directory, map_output_name + "_saved_map_after_" + operation);
 
-  mapBuilderViam.map_builder_->FinishTrajectory(0);
-  mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
-  PaintMap(mapBuilderViam.map_builder_, output_directory, "optimized_" +  map_output_name + "_saved_map_after_" + operation);
+  mapBuilder.map_builder_->FinishTrajectory(0);
+  mapBuilder.map_builder_->pose_graph()->RunFinalOptimization();
+  PaintMap(mapBuilder.map_builder_, output_directory, "optimized_" +  map_output_name + "_saved_map_after_" + operation);
 
   return;
 }
 
-
-}  // namespace mapping
-}  // namespace cartographer
+}  // namespace viam
 
 // Example of how to run this file: 
 // .run_cart_main.sh
@@ -334,7 +332,7 @@ int main(int argc, char** argv) {
 
   if (FLAGS_mapping == true) {
     std::cout << "Mapping!" << std::endl;
-    cartographer::mapping::CreateMap(mode,
+    viam::CreateMap(mode,
       FLAGS_mapping_data_directory,
       FLAGS_output_directory,
       FLAGS_configuration_directory,
@@ -356,7 +354,7 @@ int main(int argc, char** argv) {
     //   200);
 
     std::cout << "Localizing!" << std::endl;
-    cartographer::mapping::LoadMapAndRun(mode,
+    viam::LoadMapAndRun(mode,
       FLAGS_localization_data_directory,
       FLAGS_output_directory,
       FLAGS_configuration_directory,
@@ -367,7 +365,7 @@ int main(int argc, char** argv) {
       "localization");
 
     std::cout << "Drawing saved map!" << std::endl;
-    cartographer::mapping::DrawSavedMap(mode,
+    viam::DrawSavedMap(mode,
       FLAGS_output_directory,
       FLAGS_configuration_directory,
       FLAGS_configuration_localization_basename,
@@ -387,7 +385,7 @@ int main(int argc, char** argv) {
     //   200);
 
     std::cout << "Updating Map!" << std::endl;
-    cartographer::mapping::LoadMapAndRun(mode,
+    viam::LoadMapAndRun(mode,
       FLAGS_update_data_directory,
       FLAGS_output_directory,
       FLAGS_configuration_directory,
@@ -398,7 +396,7 @@ int main(int argc, char** argv) {
       "update");
 
     std::cout << "Drawing saved map!" << std::endl;
-    cartographer::mapping::DrawSavedMap(mode,
+    viam::DrawSavedMap(mode,
       FLAGS_output_directory,
       FLAGS_configuration_directory,
       FLAGS_configuration_update_basename,
