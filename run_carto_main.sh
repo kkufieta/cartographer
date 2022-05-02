@@ -1,27 +1,28 @@
 #!/bin/sh
 set -o errexit
-set -o verbose
+# set -o verbose
 
 
 # ---- Edit based on your needs:
-DATE="02252022"
+DATE="May02"
 
 MAPPING="true"
 LOCALIZATION="true"
 UPDATE="true"
 
-MAPPING_DATA_DIRECTORY="$HOME/rplidar/data_Feb_11_2022_small"
-LOCALIZATION_DATA_DIRECTORY="$HOME/rplidar/data_Feb_11_2022_large"
-UPDATE_DATA_DIRECTORY="$HOME/rplidar/data_Feb_24_2022_printer_room"
+DATA_BASE_DIRECTORY="$HOME/viam/lidar_data"
+MAPPING_DATA_DIRECTORY="$DATA_BASE_DIRECTORY/data_Feb_11_2022_small"
+LOCALIZATION_DATA_DIRECTORY="$DATA_BASE_DIRECTORY/data_Feb_24_2022_printer_room"
+UPDATE_DATA_DIRECTORY="$DATA_BASE_DIRECTORY/data_Feb_24_2022_printer_room"
 
-DESCRIPTION="_take_1"
+DESCRIPTION="_refactor"
 OUTPUT_DIRECTORY="pics${DESCRIPTION}_${DATE}"
 MAP_OUTPUT_NAME="map${DESCRIPTION}_${DATE}.pbstream"
 
 PICTURE_PRINT_INTERVAL="50"
 
 MAPPING_STARTING_SCAN_NUMBER="0"
-LOCALIZATION_STARTING_SCAN_NUMBER="1000"
+LOCALIZATION_STARTING_SCAN_NUMBER="0"
 UPDATE_STARTING_SCAN_NUMBER="0"
 # ----
 
@@ -46,9 +47,9 @@ mkdir pics_update_map_visualization
     -mapping=${MAPPING}  \
     -localization=${LOCALIZATION}  \
     -update=${UPDATE}  \
-    -mapping_data_directory=${MAPPING_DATA_DIRECTORY} \
-    -localization_data_directory=${LOCALIZATION_DATA_DIRECTORY} \
-    -update_data_directory=${UPDATE_DATA_DIRECTORY} \
+    -mapping_data_directory="${MAPPING_DATA_DIRECTORY}" \
+    -localization_data_directory="${LOCALIZATION_DATA_DIRECTORY}" \
+    -update_data_directory="${UPDATE_DATA_DIRECTORY}" \
     -output_directory=${OUTPUT_DIRECTORY} \
     -map_output_name=${MAP_OUTPUT_NAME} \
     -picture_print_interval=${PICTURE_PRINT_INTERVAL} \
