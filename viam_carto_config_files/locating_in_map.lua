@@ -32,6 +32,8 @@ TRAJECTORY_BUILDER.pure_localization_trimmer = {
 }
 
 -- ===== Global SLAM Options ======
+-- no reason to change these:
+MAP_BUILDER.use_trajectory_builder_2d = true
 -- tuneable:
 MAP_BUILDER.pose_graph.optimize_every_n_nodes = 3
 
