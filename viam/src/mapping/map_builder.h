@@ -3,8 +3,6 @@
 
 
 #include "cartographer/mapping/map_builder.h"
-#include "cartographer/mapping/viam_map_builder.h"
-
 #include "cartographer/common/config.h"
 #include "cartographer/io/proto_stream.h"
 #include "cartographer/io/viam_read_PCD_file.h"

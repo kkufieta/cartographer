@@ -2,9 +2,9 @@
 #include "cartographer/metrics/register.h"
 #include <string>
 
-#include "cartographer/io/submap_painter.h"
 #include "cartographer/io/image.h"
 #include "cartographer/io/file_writer.h"
+#include "cartographer/io/submap_painter.h"
 #include "glog/logging.h"
 
 #include "cartographer/mapping/proto/trajectory.pb.h"
@@ -13,6 +13,7 @@
 #include "viam/src/mapping/map_builder.h"
 #include "viam/src/io/draw_trajectories.h"
 #include "viam/src/io/read_PCD_file.h"
+#include "viam/src/io/submap_painter.h"
 
 
 DEFINE_string(configuration_directory, "",
@@ -107,7 +108,7 @@ void PaintMap(std::unique_ptr<cartographer::mapping::MapBuilderInterface> & map_
       }
 
     cartographer::io::PaintSubmapSlicesResult painted_slices =
-        PaintSubmapSlices(submap_slices, kPixelSize);
+        viam::io::PaintSubmapSlices(submap_slices, kPixelSize);
     auto image = cartographer::io::Image(std::move(painted_slices.surface));
     auto file = cartographer::io::StreamFileWriter(output_directory + "/map_" + appendix + ".png");
     image.WritePng(&file);

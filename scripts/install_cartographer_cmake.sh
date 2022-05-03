@@ -15,7 +15,7 @@
 # limitations under the License.
 
 set -o errexit
-set -o verbose
+# set -o verbose
 
 # Build and install Cartographer.
 pushd cartographer
