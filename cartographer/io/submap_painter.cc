@@ -103,7 +103,8 @@ PaintSubmapSlicesResult PaintSubmapSlices(
       cairo_image_surface_create(kCairoFormat, size.x(), size.y()));
   {
     auto cr = MakeUniqueCairoPtr(cairo_create(surface.get()));
-    cairo_set_source_rgba(cr.get(), 0.5, 0.0, 0.0, 1.);
+    // cairo_set_source_rgba(cr.get(), 0.5, 0.0, 0.0, 1.);
+    cairo_set_source_rgba(cr.get(), 0.5, 0.5, 0.5, 0.8);
     cairo_paint(cr.get());
     cairo_translate(cr.get(), origin.x(), origin.y());
     CairoPaintSubmapSlices(1. / resolution, submaps, cr.get(),
