@@ -1,3 +1,5 @@
+
+   
 #!/bin/sh
 
 # Copyright 2019 The Cartographer Authors
@@ -18,18 +20,16 @@ set -o errexit
 set -o verbose
 
 git clone https://github.com/abseil/abseil-cpp.git
-pushd abseil-cpp
+cd abseil-cpp
 git checkout d902eb869bcfacc1bad14933ed9af4bed006d481
-
-rm -rf build
 mkdir build
-pushd build
-
+cd build
 cmake -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+  -DCMAKE_INSTALL_PREFIX=/usr/local/stow/absl \
   ..
 ninja
 sudo ninja install
-popd
-popd
+cd /usr/local/stow
+sudo stow absl
