@@ -1,5 +1,3 @@
-
-   
 #!/bin/sh
 
 # Copyright 2019 The Cartographer Authors
