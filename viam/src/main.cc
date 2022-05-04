@@ -154,7 +154,7 @@ void CreateMap(const std::string& mode,
   
   int end_scan_number = int(file_list.size());
   for (int i = starting_scan_number; i < end_scan_number; i++ ) {
-    auto measurement = mapBuilder.GenerateSavedRangeMeasurements(data_directory, initial_file, i);
+    auto measurement = mapBuilder.GetDataFromFile(data_directory, initial_file, i);
 
     if (measurement.ranges.size() > 0) {
         trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);
@@ -236,7 +236,7 @@ void LoadMapAndRun(const std::string& mode,
   
   int end_scan_number = int(file_list.size());
   for (int i = starting_scan_number; i < end_scan_number; i++ ) {
-    auto measurement = mapBuilder.GenerateSavedRangeMeasurements(data_directory, initial_file, i);
+    auto measurement = mapBuilder.GetDataFromFile(data_directory, initial_file, i);
 
     if (measurement.ranges.size() > 0) {
         trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);

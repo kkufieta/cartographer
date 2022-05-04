@@ -33,7 +33,6 @@ cartographer::sensor::TimedPointCloudData ReadFile::timedPointCloudDataFromPCDBu
 
   // KAT NOTE: The file name format for the pcd files is assumed to be, e.g.:
   // rplidar_data_2022-02-05T01_00_20.9874.pcd
-  
   int start_pos = initial_filename.find("T") + 1;
   int len_pos = initial_filename.find(".pcd") - initial_filename.find("T") - 1;
   std::string initial_file = initial_filename.substr(start_pos, len_pos);
@@ -52,9 +51,6 @@ cartographer::sensor::TimedPointCloudData ReadFile::timedPointCloudDataFromPCDBu
   // Second
   float sec_f = std::stof(next_file.substr(6), &sz);
   float sec_i = std::stof(initial_file.substr(6), &sz);
-
-  // float total_time_final = 3600 * hour_f + 60 * min_f + sec_f;
-  // float total_time_initial = 3600 * hour_i + 60 * min_i + sec_i;
 
   float time_delta = 3600*(hour_f-hour_i) + 60*(min_f-min_i) + (sec_f - sec_i);
 

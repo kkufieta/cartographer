@@ -32,23 +32,9 @@ class MapBuilder {
 
   void BuildMapBuilder();
 
-  // ---- WARNING ----
-  // DON'T USE THESE!!! Before these are actually useful, we would need to find out
-  // how to tune them. And even then, they're only useful for specific platforms,
-  // since cartographer is HIGHLY sensitie to tuning parameters.
-  // Use with extra care.
-  void SetOptionsTo3D();
-  void SetOptionsToTSDF2D();
-  void SetOptionsEnableGlobalOptimization();
-  // ---- END OF WARNING ----
-
   cartographer::mapping::MapBuilderInterface::LocalSlamResultCallback GetLocalSlamResultCallback();
-
-  cartographer::sensor::TimedPointCloudData GenerateSavedRangeMeasurements(std::string data_directory, std::string initial_filename, int i);
-  cartographer::sensor::TimedPointCloudData GenerateSaved2DRangeMeasurements(std::string initial_filename, int i, std::string data_directory);
   
   cartographer::sensor::TimedPointCloudData GetDataFromFile(std::string data_directory, std::string initial_filename, int i);
-
 
   std::unique_ptr<cartographer::mapping::MapBuilderInterface> map_builder_;
   cartographer::mapping::proto::MapBuilderOptions map_builder_options_;

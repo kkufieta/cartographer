@@ -11,7 +11,6 @@
 namespace viam {
 namespace io {
 
-
 class ReadFile {
  public:
   std::vector<std::string> listFilesInDirectory(std::string data_directory);

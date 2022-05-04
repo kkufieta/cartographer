@@ -70,45 +70,6 @@ void MapBuilder::BuildMapBuilder() {
     map_builder_ = cartographer::mapping::CreateMapBuilder(map_builder_options_);
   }
 
-
-  // ---- WARNING ----
-  // DON'T USE THESE!!! Before these are actually useful, we would need to find out
-  // how to tune them. And even then, they're only useful for specific platforms,
-  // since cartographer is HIGHLY sensitive to tuning parameters.
-  // Use with extra care.
-void MapBuilder::SetOptionsTo3D() {
-    map_builder_options_.set_use_trajectory_builder_2d(false);
-    map_builder_options_.set_use_trajectory_builder_3d(true);
-  }
-
-void MapBuilder::SetOptionsToTSDF2D() {
-    trajectory_builder_options_.mutable_trajectory_builder_2d_options()
-        ->mutable_submaps_options()
-        ->mutable_range_data_inserter_options()
-        ->set_range_data_inserter_type(
-            cartographer::mapping::proto::RangeDataInserterOptions::TSDF_INSERTER_2D);
-    trajectory_builder_options_.mutable_trajectory_builder_2d_options()
-        ->mutable_submaps_options()
-        ->mutable_grid_options_2d()
-        ->set_grid_type(cartographer::mapping::proto::GridOptions2D::TSDF);
-    trajectory_builder_options_.mutable_trajectory_builder_2d_options()
-        ->mutable_ceres_scan_matcher_options()
-        ->set_occupied_space_weight(10.0);
-    map_builder_options_.mutable_pose_graph_options()
-        ->mutable_constraint_builder_options()
-        ->mutable_ceres_scan_matcher_options()
-        ->set_occupied_space_weight(50.0);
-  }
-
-void MapBuilder::SetOptionsEnableGlobalOptimization() {
-    map_builder_options_.mutable_pose_graph_options()
-        ->set_optimize_every_n_nodes(3);
-    trajectory_builder_options_.mutable_trajectory_builder_2d_options()
-        ->mutable_motion_filter_options()
-        ->set_max_distance_meters(0);
-  }
-  // ---- END OF WARNING ----
-
 cartographer::mapping::MapBuilderInterface::LocalSlamResultCallback MapBuilder::GetLocalSlamResultCallback() {
     return [=](const int trajectory_id, const ::cartographer::common::Time time,
                const ::cartographer::transform::Rigid3d local_pose,
@@ -118,23 +79,6 @@ cartographer::mapping::MapBuilderInterface::LocalSlamResultCallback MapBuilder::
                        InsertionResult>) {
       local_slam_result_poses_.push_back(local_pose);
     };
-  }
-
-cartographer::sensor::TimedPointCloudData MapBuilder::GenerateSavedRangeMeasurements(std::string data_directory, std::string initial_filename, int i) {
-    return GenerateSaved2DRangeMeasurements(initial_filename, i, data_directory);
-  }
-
-cartographer::sensor::TimedPointCloudData MapBuilder::GenerateSaved2DRangeMeasurements(std::string initial_filename, int i, std::string data_directory) {
-    cartographer::sensor::TimedPointCloudData point_cloud_data = MapBuilder::GetDataFromFile(data_directory, initial_filename, i);
-
-    LOG(INFO) << "----------PCD-------";
-    LOG(INFO) << "Time: " << point_cloud_data.time;  
-    LOG(INFO) << "Range (size): " << point_cloud_data.ranges.size();
-    LOG(INFO) << "Range start (time): " << point_cloud_data.ranges[0].time;
-    LOG(INFO) << "Range end (time): " << (point_cloud_data.ranges.back()).time;
-    LOG(INFO) << "-----------------\n";
-
-    return point_cloud_data;
   }
 
 cartographer::sensor::TimedPointCloudData MapBuilder::GetDataFromFile(std::string data_directory, std::string initial_filename, int i) {
@@ -150,6 +94,14 @@ cartographer::sensor::TimedPointCloudData MapBuilder::GetDataFromFile(std::strin
     }
 
     point_cloud = read_file.timedPointCloudDataFromPCDBuilder(files[i], initial_filename);
+
+    LOG(INFO) << "----------PCD-------";
+    LOG(INFO) << "Time: " << point_cloud.time;  
+    LOG(INFO) << "Range (size): " << point_cloud.ranges.size();
+    LOG(INFO) << "Range start (time): " << point_cloud.ranges[0].time;
+    LOG(INFO) << "Range end (time): " << (point_cloud.ranges.back()).time;
+    LOG(INFO) << "-----------------\n";
+
     return point_cloud;
   }
 
