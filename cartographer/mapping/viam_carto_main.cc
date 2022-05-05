@@ -229,10 +229,11 @@ void LoadMapAndRun(const std::string& mode,
 
   std::cout << "Beginning to add data....\n";
   PaintMap(mapBuilderViam.map_builder_, output_directory, "before_" + operation);
-  
+  int a_in = 0;
   for (int i = 0; i < int(file_list.size()); i++ ) {
     auto measurement = mapBuilderViam.GenerateSavedRangeMeasurements(data_directory, initial_file, i);
     PrintProgressBar(i, file_list.size());
+    a_in += measurement.ranges.size();
     if (measurement.ranges.size() > 0) {
         trajectory_builder->AddSensorData(kRangeSensorId.id, measurement);
         if (i < 3 || i % picture_print_interval == 0) {
@@ -240,6 +241,7 @@ void LoadMapAndRun(const std::string& mode,
         }
     }
   }
+  std::cout << "NUM OF POINTS IN INITIAL DATA: " << a_in << std::endl;
 
   // saved map after localization is finished
   const std::string map_file_2 = "./" + map_output_name;
@@ -255,6 +257,11 @@ void LoadMapAndRun(const std::string& mode,
     mapBuilderViam.map_builder_->FinishTrajectory(trajectory_id);
   }
 
+  int a = 0;
+  for (const auto& node: mapBuilderViam.map_builder_->pose_graph()->GetTrajectoryNodes()) { 
+    a += node.data.constant_data->filtered_gravity_aligned_point_cloud.size();
+  }
+  std::cout << "NUM OF POINTS IN FINAL DATA: " << a << std::endl;
   mapBuilderViam.map_builder_->pose_graph()->RunFinalOptimization();
   PaintMap(mapBuilderViam.map_builder_, output_directory, "after_" + operation + "_optimization");
 
