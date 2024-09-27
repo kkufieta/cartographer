@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CARTOGRAPHER_IO_DRAW_TRAJECTORIES_H_
-#define CARTOGRAPHER_IO_DRAW_TRAJECTORIES_H_
+#ifndef VIAM_CARTOGRAPHER_IO_DRAW_TRAJECTORIES_H_
+#define VIAM_CARTOGRAPHER_IO_DRAW_TRAJECTORIES_H_
 
 #include "cairo/cairo.h"
 #include "cartographer/io/image.h"
@@ -25,10 +25,12 @@
 #include "cartographer/mapping/trajectory_node.h"
 #include "cartographer/mapping/id.h"
 
-namespace cartographer {
+#include "viam/src/io/color.h"
+
+namespace viam {
 namespace io {
 
-using PoseToPixelFunction = std::function<Eigen::Array2i(const transform::Rigid3d& pose)>;
+using PoseToPixelFunction = std::function<Eigen::Array2i(const cartographer::transform::Rigid3d& pose)>;
 
 // Draws the 'trajectory' with the given 'color' onto 'surface'. Function must translate a trajectory node's position into the
 // pixel on 'surface'.
@@ -40,6 +42,6 @@ cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(
     cairo_surface_t* surface);
 
 }  // namespace io
-}  // namespace cartographer
+}  // namespace viam
 
-#endif  // CARTOGRAPHER_IO_DRAW_TRAJECTORIES_H_
+#endif  // VIAM_CARTOGRAPHER_IO_DRAW_TRAJECTORIES_H_

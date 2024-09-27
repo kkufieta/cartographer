@@ -90,6 +90,8 @@ install(DIRECTORY cmake DESTINATION share/cartographer/)
 
 file(GLOB_RECURSE ALL_LIBRARY_HDRS "cartographer/*.h")
 file(GLOB_RECURSE ALL_LIBRARY_SRCS "cartographer/*.cc")
+file(GLOB_RECURSE ALL_VIAM_HDRS "viam/*.h")
+file(GLOB_RECURSE ALL_VIAM_SRCS "viam/*.cc")
 # file(GLOB_RECURSE TEST_LIBRARY_HDRS "cartographer/fake_*.h" "cartographer/*test_helpers*.h" "cartographer/mock_*.h")
 # file(GLOB_RECURSE TEST_LIBRARY_SRCS "cartographer/fake_*.cc" "cartographer/*test_helpers*.cc" "cartographer/mock_*.cc")
 # file(GLOB_RECURSE ALL_TESTS "cartographer/*_test.cc")
@@ -164,6 +166,8 @@ endforeach()
 set_source_files_properties(${ALL_PROTO_SRCS} ${ALL_PROTO_HDRS} PROPERTIES GENERATED TRUE)
 list(APPEND ALL_LIBRARY_HDRS ${ALL_PROTO_HDRS})
 list(APPEND ALL_LIBRARY_SRCS ${ALL_PROTO_SRCS})
+list(APPEND ALL_LIBRARY_HDRS ${ALL_VIAM_HDRS})
+list(APPEND ALL_LIBRARY_SRCS ${ALL_VIAM_SRCS})
 
 if(${BUILD_GRPC})
   set(ALL_GRPC_SERVICE_SRCS)
@@ -201,12 +205,6 @@ configure_file(
   ${PROJECT_SOURCE_DIR}/cartographer/common/config.h.cmake
   ${PROJECT_BINARY_DIR}/cartographer/common/config.h)
 
-
-google_binary(viam_carto_loop_main
-  SRCS
-    cartographer/mapping/viam_carto_loop_main.cc
-)
-
 google_binary(cartographer_autogenerate_ground_truth
   SRCS
     cartographer/ground_truth/autogenerate_ground_truth_main.cc
@@ -229,7 +227,7 @@ google_binary(cartographer_print_configuration
 
 google_binary(viam_carto_main
   SRCS
-    cartographer/mapping/viam_carto_main.cc
+    viam/src/main.cc
 )
 
 if(${BUILD_GRPC})

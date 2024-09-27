@@ -18,14 +18,10 @@ set -o errexit
 set -o verbose
 
 # Build and install Cartographer.
-pushd cartographer
-
-rm -rf build
+cd cartographer
 mkdir build
-pushd build
-
-cmake .. -G Ninja -DCMAKE_CXX_STANDARD=17 -DCMAKE_PREFIX_PATH=`brew --prefix` -DQt5_DIR=$(brew --prefix qt5)/lib/cmake/Qt5
+cd build
+cmake .. -G Ninja
 ninja
+CTEST_OUTPUT_ON_FAILURE=1 ninja test
 sudo ninja install
-popd
-popd

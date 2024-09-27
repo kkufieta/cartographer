@@ -4,23 +4,24 @@
 #include <fstream>  // std::ifstream
 #include <string>
 #include <boost/filesystem.hpp>
-#include "viam_read_PCD_file.h"
 #include <stdio.h>
 #include <ctime>
 #include "glog/logging.h"
 
+#include "viam/src/io/read_PCD_file.h"
 
-namespace cartographer {
+
+namespace viam {
 namespace io {
 
 namespace fs = boost::filesystem;
 
-sensor::TimedPointCloudData ReadFile::timedPointCloudDataFromPCDBuilder (std::string file_path, std::string initial_filename){
+cartographer::sensor::TimedPointCloudData ReadFile::timedPointCloudDataFromPCDBuilder (std::string file_path, std::string initial_filename){
 
   pcl::console::setVerbosityLevel(pcl::console::L_ALWAYS);
 
-  sensor::TimedPointCloudData timedPCD;
-  sensor::TimedPointCloud ranges;
+  cartographer::sensor::TimedPointCloudData timedPCD;
+  cartographer::sensor::TimedPointCloud ranges;
   
   //Open the point cloud file
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -32,7 +33,6 @@ sensor::TimedPointCloudData ReadFile::timedPointCloudDataFromPCDBuilder (std::st
 
   // KAT NOTE: The file name format for the pcd files is assumed to be, e.g.:
   // rplidar_data_2022-02-05T01_00_20.9874.pcd
-  
   int start_pos = initial_filename.find("T") + 1;
   int len_pos = initial_filename.find(".pcd") - initial_filename.find("T") - 1;
   std::string initial_file = initial_filename.substr(start_pos, len_pos);
@@ -52,9 +52,6 @@ sensor::TimedPointCloudData ReadFile::timedPointCloudDataFromPCDBuilder (std::st
   float sec_f = std::stof(next_file.substr(6), &sz);
   float sec_i = std::stof(initial_file.substr(6), &sz);
 
-  // float total_time_final = 3600 * hour_f + 60 * min_f + sec_f;
-  // float total_time_initial = 3600 * hour_i + 60 * min_i + sec_i;
-
   float time_delta = 3600*(hour_f-hour_i) + 60*(min_f-min_i) + (sec_f - sec_i);
 
   LOG(INFO) << "------------ FILE DATA -------------\n";
@@ -66,7 +63,7 @@ sensor::TimedPointCloudData ReadFile::timedPointCloudDataFromPCDBuilder (std::st
 
   for (size_t i = 0; i < cloud->points.size(); ++i) {
 
-    sensor::TimedRangefinderPoint TimedRP;
+    cartographer::sensor::TimedRangefinderPoint TimedRP;
     TimedRP.position = Eigen::Vector3f(cloud->points[i].x, cloud->points[i].y, cloud->points[i].z);
     TimedRP.time = 0 - i*0.0001;
     
@@ -103,4 +100,4 @@ int ReadFile::removeFile (std::string file_path)
 }
 
 }  // namespace io
-}  // namespace cartographer
+}  // namespace viam

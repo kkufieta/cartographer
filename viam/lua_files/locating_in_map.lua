@@ -28,10 +28,12 @@ TRAJECTORY_BUILDER.trajectory_builder_2d.missing_data_ray_length = 25 -- DO NOT 
 -- tuneable:
 TRAJECTORY_BUILDER.trajectory_builder_2d.submaps.num_range_data = 100
 TRAJECTORY_BUILDER.pure_localization_trimmer = {
-  max_submaps_to_keep = 4,
+  max_submaps_to_keep = 3,
 }
 
 -- ===== Global SLAM Options ======
+-- no reason to change these:
+MAP_BUILDER.use_trajectory_builder_2d = true
 -- tuneable:
 MAP_BUILDER.pose_graph.optimize_every_n_nodes = 3
 

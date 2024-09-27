@@ -32,7 +32,7 @@ sensor::TimedPointCloudOriginData RangeDataCollator::AddRangeData(
     sensor::TimedPointCloudData timed_point_cloud_data) {
   CHECK_NE(expected_sensor_ids_.count(sensor_id), 0);
   timed_point_cloud_data.intensities.resize(
-  timed_point_cloud_data.ranges.size(), kDefaultIntensityValue);
+      timed_point_cloud_data.ranges.size(), kDefaultIntensityValue);
   // TODO(gaschler): These two cases can probably be one.
   if (id_to_pending_data_.count(sensor_id) != 0) {
     current_start_ = current_end_;
@@ -67,15 +67,17 @@ sensor::TimedPointCloudOriginData RangeDataCollator::CropAndMerge() {
     const std::vector<float>& intensities = it->second.intensities;
 
     auto overlap_begin = ranges.begin();
-    while (overlap_begin < ranges.end() && data.time + common::FromSeconds((*overlap_begin).time) < current_start_) {
-      
+    while (overlap_begin < ranges.end() &&
+           data.time + common::FromSeconds((*overlap_begin).time) <
+               current_start_) {
       ++overlap_begin;
     }
     auto overlap_end = overlap_begin;
-    while (overlap_end < ranges.end() && data.time + common::FromSeconds((*overlap_end).time) <= current_end_) {
+    while (overlap_end < ranges.end() &&
+           data.time + common::FromSeconds((*overlap_end).time) <=
+               current_end_) {
       ++overlap_end;
     }
-
     if (ranges.begin() < overlap_begin && !warned_for_dropped_points) {
       LOG(WARNING) << "Dropped " << std::distance(ranges.begin(), overlap_begin)
                    << " earlier points.";

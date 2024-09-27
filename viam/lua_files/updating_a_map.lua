@@ -26,11 +26,13 @@ TRAJECTORY_BUILDER.trajectory_builder_2d.max_range = 25.
 TRAJECTORY_BUILDER.trajectory_builder_2d.missing_data_ray_length = 25 -- DO NOT CHANGE
 
 -- tuneable:
-TRAJECTORY_BUILDER.trajectory_builder_2d.submaps.num_range_data = 50
+TRAJECTORY_BUILDER.trajectory_builder_2d.submaps.num_range_data = 100
 
 -- ===== Global SLAM Options ======
+-- no reason to change these:
+MAP_BUILDER.use_trajectory_builder_2d = true
 -- tuneable:
-MAP_BUILDER.pose_graph.optimize_every_n_nodes = 2
+MAP_BUILDER.pose_graph.optimize_every_n_nodes = 3
 MAP_BUILDER.pose_graph.overlapping_submaps_trimmer_2d = {
   fresh_submaps_count = 3,
   min_covered_area = 1.0,

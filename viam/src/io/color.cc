@@ -21,14 +21,15 @@
 #include "cartographer/common/port.h"
 #include "glog/logging.h"
 
-namespace cartographer {
+#include "viam/src/io/color.h"
+
+namespace viam {
 namespace io {
 
 namespace {
-
 constexpr float kInitialHue = 0.69f;
-constexpr float kSaturation = 0.85f;
-constexpr float kValue = 0.77f;
+constexpr float kSaturation = 0.5f;
+constexpr float kValue = 0.95f;
 
 FloatColor HsvToRgb(const float h, const float s, const float v) {
   const float h_6 = (h == 1.f) ? 0.f : 6 * h;
@@ -56,7 +57,7 @@ FloatColor HsvToRgb(const float h, const float s, const float v) {
   }
 }
 
-}  // namespace
+} // namespace
 
 FloatColor GetColor(int id) {
   CHECK_GE(id, 0);
@@ -68,4 +69,4 @@ FloatColor GetColor(int id) {
 }
 
 }  // namespace io
-}  // namespace cartographer
+}  // namespace viam

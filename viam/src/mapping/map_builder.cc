@@ -15,10 +15,8 @@
  */
 
 #include "cartographer/mapping/map_builder.h"
-#include "cartographer/mapping/viam_map_builder.h"
 #include "cartographer/common/config.h"
 #include "cartographer/io/proto_stream.h"
-#include "cartographer/io/viam_read_PCD_file.h"
 #include "cartographer/mapping/2d/grid_2d.h"
 #include "cartographer/mapping/internal/testing/test_helpers.h"
 #include "cartographer/mapping/internal/local_slam_result_data.h"
@@ -34,7 +32,10 @@
 #include "gtest/gtest.h"
 #include "glog/logging.h"
 
-namespace cartographer {
+#include "viam/src/io/read_PCD_file.h"
+#include "viam/src/mapping/map_builder.h"
+
+namespace viam {
 namespace mapping {
 
 using SensorId = cartographer::mapping::TrajectoryBuilderInterface::SensorId;
@@ -46,7 +47,7 @@ constexpr double kTimeStep = 0.1;        // Seconds.
 constexpr double kTravelDistance = 1.2;  // Meters.
 
 
-void MapBuilderViam::SetUp(std::string configuration_directory, std::string configuration_basename) {
+void MapBuilder::SetUp(std::string configuration_directory, std::string configuration_basename) {
 
   auto file_resolver =
       absl::make_unique<cartographer::common::ConfigurationFileResolver>(
@@ -65,50 +66,11 @@ void MapBuilderViam::SetUp(std::string configuration_directory, std::string conf
   return;
   }
 
-void MapBuilderViam::BuildMapBuilder() {
-    map_builder_ = CreateMapBuilder(map_builder_options_);
+void MapBuilder::BuildMapBuilder() {
+    map_builder_ = cartographer::mapping::CreateMapBuilder(map_builder_options_);
   }
 
-
-  // ---- WARNING ----
-  // DON'T USE THESE!!! Before these are actually useful, we would need to find out
-  // how to tune them. And even then, they're only useful for specific platforms,
-  // since cartographer is HIGHLY sensitive to tuning parameters.
-  // Use with extra care.
-void MapBuilderViam::SetOptionsTo3D() {
-    map_builder_options_.set_use_trajectory_builder_2d(false);
-    map_builder_options_.set_use_trajectory_builder_3d(true);
-  }
-
-void MapBuilderViam::SetOptionsToTSDF2D() {
-    trajectory_builder_options_.mutable_trajectory_builder_2d_options()
-        ->mutable_submaps_options()
-        ->mutable_range_data_inserter_options()
-        ->set_range_data_inserter_type(
-            proto::RangeDataInserterOptions::TSDF_INSERTER_2D);
-    trajectory_builder_options_.mutable_trajectory_builder_2d_options()
-        ->mutable_submaps_options()
-        ->mutable_grid_options_2d()
-        ->set_grid_type(proto::GridOptions2D::TSDF);
-    trajectory_builder_options_.mutable_trajectory_builder_2d_options()
-        ->mutable_ceres_scan_matcher_options()
-        ->set_occupied_space_weight(10.0);
-    map_builder_options_.mutable_pose_graph_options()
-        ->mutable_constraint_builder_options()
-        ->mutable_ceres_scan_matcher_options()
-        ->set_occupied_space_weight(50.0);
-  }
-
-void MapBuilderViam::SetOptionsEnableGlobalOptimization() {
-    map_builder_options_.mutable_pose_graph_options()
-        ->set_optimize_every_n_nodes(3);
-    trajectory_builder_options_.mutable_trajectory_builder_2d_options()
-        ->mutable_motion_filter_options()
-        ->set_max_distance_meters(0);
-  }
-  // ---- END OF WARNING ----
-
-MapBuilderInterface::LocalSlamResultCallback MapBuilderViam::GetLocalSlamResultCallback() {
+cartographer::mapping::MapBuilderInterface::LocalSlamResultCallback MapBuilder::GetLocalSlamResultCallback() {
     return [=](const int trajectory_id, const ::cartographer::common::Time time,
                const ::cartographer::transform::Rigid3d local_pose,
                ::cartographer::sensor::RangeData range_data_in_local,
@@ -119,25 +81,8 @@ MapBuilderInterface::LocalSlamResultCallback MapBuilderViam::GetLocalSlamResultC
     };
   }
 
-cartographer::sensor::TimedPointCloudData MapBuilderViam::GenerateSavedRangeMeasurements(std::string data_directory, std::string initial_filename, int i) {
-    return GenerateSaved2DRangeMeasurements(initial_filename, i, data_directory);
-  }
-
-cartographer::sensor::TimedPointCloudData MapBuilderViam::GenerateSaved2DRangeMeasurements(std::string initial_filename, int i, std::string data_directory) {
-    cartographer::sensor::TimedPointCloudData point_cloud_data = MapBuilderViam::GetDataFromFile(data_directory, initial_filename, i);
-
-    LOG(INFO) << "----------PCD-------";
-    LOG(INFO) << "Time: " << point_cloud_data.time;  
-    LOG(INFO) << "Range (size): " << point_cloud_data.ranges.size();
-    LOG(INFO) << "Range start (time): " << point_cloud_data.ranges[0].time;
-    LOG(INFO) << "Range end (time): " << (point_cloud_data.ranges.back()).time;
-    LOG(INFO) << "-----------------\n";
-
-    return point_cloud_data;
-  }
-
-cartographer::sensor::TimedPointCloudData MapBuilderViam::GetDataFromFile(std::string data_directory, std::string initial_filename, int i) {
-    cartographer::io::ReadFile read_file;
+cartographer::sensor::TimedPointCloudData MapBuilder::GetDataFromFile(std::string data_directory, std::string initial_filename, int i) {
+    viam::io::ReadFile read_file;
     std::vector<std::string> files;
     cartographer::sensor::TimedPointCloudData point_cloud;
 
@@ -149,9 +94,16 @@ cartographer::sensor::TimedPointCloudData MapBuilderViam::GetDataFromFile(std::s
     }
 
     point_cloud = read_file.timedPointCloudDataFromPCDBuilder(files[i], initial_filename);
+
+    LOG(INFO) << "----------PCD-------";
+    LOG(INFO) << "Time: " << point_cloud.time;  
+    LOG(INFO) << "Range (size): " << point_cloud.ranges.size();
+    LOG(INFO) << "Range start (time): " << point_cloud.ranges[0].time;
+    LOG(INFO) << "Range end (time): " << (point_cloud.ranges.back()).time;
+    LOG(INFO) << "-----------------\n";
+
     return point_cloud;
   }
 
 }  // namespace mapping
-}  // namespace cartographer
-
+}  // namespace viam

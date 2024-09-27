@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#include "cartographer/io/viam_draw_trajectories.h"
-
 #include "cartographer/io/image.h"
 #include "cartographer/transform/transform.h"
 
-namespace cartographer {
+#include "viam/src/io/draw_trajectories.h"
+
+namespace viam {
 namespace io {
 
 cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(
@@ -47,7 +47,7 @@ cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(
 
   // Draw trajectory paths
   for (const int trajectory_id : trajectory_nodes.trajectory_ids()) {
-    cartographer::io::FloatColor color = GetColor(trajectory_id);
+    cartographer::io::FloatColor color = viam::io::GetColor(trajectory_id);
     cairo_set_source_rgba(cr, color[0], color[1], color[2], kAlpha);
     cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
     last_traj = trajectory_id;
@@ -84,17 +84,6 @@ cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(
     }
   }
 
-  // std::cout << node.second << std::endl;
-  // std::cout << node.data << std::endl;
-  // auto t_global_pose = node.data.global_pose;
-  // const Eigen::Vector3d pixel = t_global_pose.translation();
-  // double px_start =  (slice_pose.translation().y() - pixel.y())/resolution;
-  // double py_start = (slice_pose.translation().x() - pixel.x())/resolution;
-  // cairo_arc(cr, px_start, py_start, kTrajectoryEndMarkers, 0, 2 * M_PI);
-  // cairo_fill(cr);
-
- // cairo_set_source_rgba(cr, 1.0, 0.0, 0.0, 1.0);
-
   // Draw end point for most recent trajectory
   cairo_arc(cr, px_curr, py_curr, kTrajectoryEndMarkers, 0, 2 * M_PI);
   cairo_fill(cr);
@@ -111,4 +100,4 @@ cartographer::io::UniqueCairoSurfacePtr DrawTrajectoryNodes(
 }
 
 }  // namespace io
-}  // namespace cartographer
+}  // namespace viam
